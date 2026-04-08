@@ -33,6 +33,34 @@ log "  Allow inference from: ${CLAW_IP}"
 log ""
 
 # ============================================================
+# 0. Resize filesystem if needed
+# ============================================================
+DISK="/dev/mmcblk0"
+PARTNUM=1
+PARTDEV="${DISK}p${PARTNUM}"
+DISK_SIZE=$(lsblk -b -n -o SIZE "$DISK" 2>/dev/null | head -1)
+PART_SIZE=$(lsblk -b -n -o SIZE "$PARTDEV" 2>/dev/null | head -1)
+
+if [[ -n "$DISK_SIZE" && -n "$PART_SIZE" ]]; then
+  THRESHOLD=$(( DISK_SIZE * 90 / 100 ))
+  if (( PART_SIZE < THRESHOLD )); then
+    log "--- Step 0: Resizing filesystem ---"
+    if command -v sgdisk &>/dev/null; then
+      START_SECTOR=$(sgdisk -i "$PARTNUM" "$DISK" | grep 'First sector:' | awk '{print $3}')
+      sgdisk -e "$DISK"
+      sgdisk -d "$PARTNUM" -n "${PARTNUM}:${START_SECTOR}:0" -c "${PARTNUM}:APP" -t "${PARTNUM}:8300" "$DISK"
+      partprobe "$DISK"
+      resize2fs "$PARTDEV"
+      log "Filesystem resized: $(df -h / | awk 'NR==2 {print $2}')"
+    else
+      log "WARNING: sgdisk not found — run resize_ubuntu.sh manually"
+    fi
+  else
+    log "Filesystem already sized correctly: $(df -h / | awk 'NR==2 {print $2}')"
+  fi
+fi
+
+# ============================================================
 # 1. Verify CUDA
 # ============================================================
 log "--- Step 1/8: Verify CUDA ---"

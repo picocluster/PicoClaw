@@ -27,6 +27,40 @@ log "  Model: ${DEFAULT_MODEL}"
 log ""
 
 # ============================================================
+# 0. Resize filesystem if needed
+# ============================================================
+DISK="/dev/mmcblk0"
+PARTDEV="${DISK}p2"
+DISK_SIZE=$(lsblk -b -n -o SIZE "$DISK" 2>/dev/null | head -1)
+PART_SIZE=$(lsblk -b -n -o SIZE "$PARTDEV" 2>/dev/null | head -1)
+
+if [[ -n "$DISK_SIZE" && -n "$PART_SIZE" ]]; then
+  # Resize if partition is less than 90% of disk
+  THRESHOLD=$(( DISK_SIZE * 90 / 100 ))
+  if (( PART_SIZE < THRESHOLD )); then
+    log "--- Step 0: Resizing filesystem ---"
+    START_SECTOR=$(fdisk -l "$DISK" | grep "^${PARTDEV}" | awk '{print $2}')
+    if [[ -n "$START_SECTOR" ]]; then
+      fdisk "$DISK" <<EOF > /dev/null 2>&1
+d
+2
+n
+p
+2
+$START_SECTOR
+
+w
+EOF
+      partprobe "$DISK"
+      resize2fs "$PARTDEV"
+      log "Filesystem resized: $(df -h / | awk 'NR==2 {print $2}')"
+    fi
+  else
+    log "Filesystem already sized correctly: $(df -h / | awk 'NR==2 {print $2}')"
+  fi
+fi
+
+# ============================================================
 # 1. Docker
 # ============================================================
 log "--- Step 1/5: Docker ---"
