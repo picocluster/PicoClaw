@@ -31,10 +31,10 @@ cat > "$CONFIG" <<EOF
         "baseUrl": "${LOCAL_BASE_URL:-http://picocrush:11434/v1}",
         "apiKey": "none",
         "models": [
-          {
-            "id": "${LOCAL_MODEL:-llama3.2:3b}",
-            "name": "Llama 3.2 3B"
-          }
+          {"id": "llama3.2:3b", "name": "Llama 3.2 3B"},
+          {"id": "llama3.1:8b", "name": "Llama 3.1 8B"},
+          {"id": "phi3.5:3.8b", "name": "Phi 3.5 Mini"},
+          {"id": "qwen2.5:3b", "name": "Qwen 2.5 3B"}
         ]
       }
     }
