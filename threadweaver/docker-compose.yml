@@ -1,8 +1,6 @@
 # Standalone ThreadWeaver docker-compose (for testing without OpenClaw)
 # For full PicoClaw deployment, use the root docker-compose.yml instead.
 
-version: '3.8'
-
 services:
   threadweaver:
     build: .
