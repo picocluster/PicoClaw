@@ -1,5 +1,7 @@
 # PicoClaw Access Guide
 
+> **Note:** This guide uses the default PicoClaw configuration. If you changed hostnames, IP addresses, usernames, or tokens via `configure-pair.sh` or your own setup, substitute your values throughout. Defaults: hostnames `picoclaw`/`picocrush`, IPs `10.1.10.220`/`10.1.10.221`, user `picocluster`, token `picocluster-token`.
+
 ## Quick Reference
 
 | Interface | HTTP (LAN) | HTTPS (secure) | Notes |
