@@ -47,6 +47,19 @@ echo "Setting up frontend..."
 cd "$INSTALL_DIR/frontend"
 npm install 2>&1 | tail -5
 
+# Allow all hosts in Vite (needed for LAN access by hostname)
+cat > "$INSTALL_DIR/frontend/vite.config.js" <<'VITE'
+import { sveltekit } from "@sveltejs/kit/vite";
+import { defineConfig } from "vite";
+
+export default defineConfig({
+	plugins: [sveltekit()],
+	server: {
+		allowedHosts: true
+	}
+});
+VITE
+
 # Set ownership
 chown -R "$TW_USER:$TW_USER" "$INSTALL_DIR"
 
