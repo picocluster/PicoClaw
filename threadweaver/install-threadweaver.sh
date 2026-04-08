@@ -60,6 +60,11 @@ export default defineConfig({
 });
 VITE
 
+# Patch API_BASE to use relative paths (allows LAN access via Vite proxy)
+sed -i "s|const API_BASE = 'http://localhost:8000/api'|const API_BASE = '/api'|g" \
+  "$INSTALL_DIR/frontend/src/lib/api.ts" \
+  "$INSTALL_DIR/frontend/src/routes/+page.svelte" 2>/dev/null
+
 # Set ownership
 chown -R "$TW_USER:$TW_USER" "$INSTALL_DIR"
 
