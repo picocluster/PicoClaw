@@ -75,6 +75,9 @@ log "CUDA OK: $(nvidia-smi --query-gpu=name,driver_version --format=csv,noheader
 # 2. Install Ollama
 # ============================================================
 log "--- Step 2/6: Install Ollama ---"
+# Ollama installer requires zstd for extraction
+apt install -y zstd 2>/dev/null | tail -1
+
 if ! command -v ollama &>/dev/null; then
   curl -fsSL https://ollama.ai/install.sh | sh
   log "Ollama installed"
