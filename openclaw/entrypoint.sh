@@ -1,16 +1,25 @@
 #!/bin/bash
 set -e
 
-# Generate config from environment variables if not mounted
-if [[ ! -f /home/openclaw/.openclaw/openclaw.json ]]; then
-  cat > /home/openclaw/.openclaw/openclaw.json <<EOF
+CONFIG="/home/openclaw/.openclaw/openclaw.json"
+
+# Always regenerate config from env vars to ensure consistency
+cat > "$CONFIG" <<EOF
 {
   "gateway": {
     "mode": "local",
     "auth": {
       "token": "${OPENCLAW_TOKEN:-picocluster-token}"
     },
-    "bind": "0.0.0.0"
+    "bind": "lan",
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:18789",
+        "http://127.0.0.1:18789",
+        "http://picoclaw:18789",
+        "http://10.1.10.220:18789"
+      ]
+    }
   },
   "models": {
     "providers": {
@@ -28,7 +37,6 @@ if [[ ! -f /home/openclaw/.openclaw/openclaw.json ]]; then
   }
 }
 EOF
-  chmod 600 /home/openclaw/.openclaw/openclaw.json
-fi
+chmod 600 "$CONFIG"
 
 exec openclaw gateway --port 18789
