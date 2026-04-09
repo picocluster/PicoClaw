@@ -11,10 +11,26 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import subprocess
 import json
 import os
+import urllib.request
 
 TOKEN = os.environ.get("SHUTDOWN_TOKEN", "picocluster-shutdown")
 CRUSH_IP = os.environ.get("CRUSH_IP", "10.1.10.221")
 CRUSH_USER = os.environ.get("CRUSH_USER", "picocluster")
+LED_API = os.environ.get("LED_API_URL", "http://127.0.0.1:7777")
+
+
+def led_call(endpoint, data=None):
+    """Trigger an LED effect. Fails silently."""
+    try:
+        req = urllib.request.Request(
+            f"{LED_API}/{endpoint}",
+            data=json.dumps(data or {}).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        urllib.request.urlopen(req, timeout=2)
+    except Exception:
+        pass
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -44,6 +60,14 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         self._respond(200, {"status": f"{action} initiated", "target": target})
+
+        # Visual feedback before the cluster goes dark
+        if action == "restart":
+            # Amber pulse for 90s — long enough to cover the shutdown delay + reboot
+            led_call("set_status", {"color": "amber", "duration": 90})
+        else:
+            # Red pulse for 90s — shutdown imminent
+            led_call("set_status", {"color": "red", "duration": 90})
 
         # Execute after response is sent
         cmd = "reboot" if action == "restart" else "shutdown -h now"
