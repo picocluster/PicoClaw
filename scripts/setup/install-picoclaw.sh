@@ -167,18 +167,20 @@ if [[ -f "$INSTALL_DIR/portal/shutdown-api.service" ]]; then
   systemctl start shutdown-api
   log "Shutdown API installed"
 fi
-ufw allow 18789/tcp comment "OpenClaw Gateway" 2>/dev/null || true
 ufw allow 18790/tcp comment "OpenClaw Dashboard (HTTPS via Caddy)" 2>/dev/null || true
 ufw allow 5174/tcp comment "ThreadWeaver HTTPS (via Caddy)" 2>/dev/null || true
 ufw deny 18791/tcp comment "OpenClaw control" 2>/dev/null || true
 ufw deny 18792/tcp comment "OpenClaw CDP relay" 2>/dev/null || true
-# ThreadWeaver UI (5173) and API (8000) are bound to 127.0.0.1 only via docker-compose;
-# LAN access is via the Caddy HTTPS wrapper on 5174 through SSH tunnel.
-# Explicitly deny 5173/8000 in case an older install left them open.
-ufw delete allow 5173/tcp 2>/dev/null || true
-ufw delete allow 8000/tcp 2>/dev/null || true
-ufw deny 5173/tcp comment "ThreadWeaver UI (localhost-only, tunnel via 5174)" 2>/dev/null || true
-ufw deny 8000/tcp comment "ThreadWeaver API (localhost-only)" 2>/dev/null || true
+# All raw HTTP ports below are bound to 127.0.0.1 only via docker-compose;
+# LAN access goes through Caddy HTTPS (5174, 18790) via SSH tunnel.
+# Explicitly delete stale ALLOW rules and replace with DENY so the posture is
+# self-documenting and idempotent across reinstalls.
+for port in 5173 8000 18789; do
+  ufw delete allow "${port}/tcp" 2>/dev/null || true
+done
+ufw deny 18789/tcp comment "OpenClaw raw HTTP (localhost-only, tunnel via 18790)" 2>/dev/null || true
+ufw deny 5173/tcp  comment "ThreadWeaver UI (localhost-only, tunnel via 5174)" 2>/dev/null || true
+ufw deny 8000/tcp  comment "ThreadWeaver API (localhost-only)" 2>/dev/null || true
 log "Firewall configured"
 
 # ============================================================

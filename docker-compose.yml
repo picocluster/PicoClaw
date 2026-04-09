@@ -37,8 +37,10 @@ services:
     build: ./openclaw
     container_name: openclaw
     restart: always
+    # Localhost-only binding: LAN clients must use the SSH tunnel + Caddy HTTPS on 18790.
+    # Caddy (host network mode) reverse_proxies to 127.0.0.1:18789, still reachable.
     ports:
-      - "18789:18789"
+      - "127.0.0.1:18789:18789"
     environment:
       - OPENCLAW_TOKEN=${OPENCLAW_TOKEN:-picocluster-token}
       - LOCAL_BASE_URL=http://picocrush:11434/v1
