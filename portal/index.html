@@ -282,7 +282,7 @@
     }
 
     function checkAll() {
-      checkService('/api/settings', 'dot-tw', 'status-tw', 'ThreadWeaver');
+      checkService('http://' + location.hostname + ':8000/api/settings', 'dot-tw', 'status-tw', 'ThreadWeaver');
       checkService('http://' + location.hostname + ':18789/', 'dot-oc', 'status-oc', 'OpenClaw');
       checkService('http://picocrush:11434/api/tags', 'dot-ol', 'status-ol', 'Ollama');
     }
