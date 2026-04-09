@@ -65,11 +65,43 @@ def http_check(url, timeout=2):
 
 
 def check_inference_active():
+    """Check if Ollama is actively generating by monitoring /api/generate endpoint activity.
+    Uses /api/ps but compares expires_at to detect fresh vs stale model loading."""
     try:
         resp = urllib.request.urlopen(OLLAMA_PS_URL, timeout=2)
         data = json.loads(resp.read())
         models = data.get("models", [])
-        return len(models) > 0
+        if not models:
+            return False
+        # Check if expires_at was recently refreshed (within last 10 seconds)
+        # Ollama sets expires_at = now + 5min on each request
+        for m in models:
+            expires = m.get("expires_at", "")
+            if expires:
+                try:
+                    from datetime import datetime, timezone
+                    # Parse ISO timestamp with timezone
+                    exp_str = expires.replace("Z", "+00:00")
+                    # Handle nanoseconds by truncating to microseconds
+                    if "." in exp_str:
+                        parts = exp_str.split(".")
+                        frac_and_tz = parts[1]
+                        # Find where the timezone starts (+ or -)
+                        for ti, c in enumerate(frac_and_tz):
+                            if c in "+-" and ti > 0:
+                                frac = frac_and_tz[:ti][:6]
+                                tz = frac_and_tz[ti:]
+                                exp_str = parts[0] + "." + frac + tz
+                                break
+                    exp_time = datetime.fromisoformat(exp_str)
+                    now = datetime.now(timezone.utc)
+                    # Ollama sets 5min expiry. If >4min50s remain, inference just happened
+                    remaining = (exp_time - now).total_seconds()
+                    if remaining > 290:  # More than 4:50 remaining = just used
+                        return True
+                except Exception:
+                    pass
+        return False
     except Exception:
         return False
 
@@ -294,7 +326,16 @@ class IdleEngine:
 # ─── Active effects ─────────────────────────────────────────
 
 class InferenceEngine:
-    """Fast green/cyan chase when LLM is generating."""
+    """Colorful chase when LLM is generating."""
+
+    COLORS = [
+        (0, 255, 40),     # green
+        (0, 200, 255),    # cyan
+        (100, 255, 0),    # lime
+        (0, 255, 180),    # mint
+        (50, 150, 255),   # sky blue
+        (180, 255, 0),    # yellow-green
+    ]
 
     def __init__(self):
         self.step = 0
@@ -302,18 +343,16 @@ class InferenceEngine:
     def update(self, leds):
         self.step += 1
         pos = (self.step * 0.3) % (NUM_LEDS * 2)
+        color_idx = (self.step // 15) % len(self.COLORS)
+        r, g, b = self.COLORS[color_idx]
 
         for i in range(NUM_LEDS):
             dist = abs(i - (pos % NUM_LEDS))
             if dist > NUM_LEDS // 2:
                 dist = NUM_LEDS - dist
-            br = max(0.01, 0.45 * (1.0 - dist / 3.5))
+            intensity = max(0, 1.0 - dist / 3.0)
 
-            # Alternate green and cyan
-            if (self.step // 20) % 2 == 0:
-                leds.set_pixel(i, 0, 255, 40, max(0, br))
-            else:
-                leds.set_pixel(i, 0, 200, 255, max(0, br))
+            leds.set_pixel(i, int(r * intensity), int(g * intensity), int(b * intensity), 0.3)
 
         leds.show()
 
