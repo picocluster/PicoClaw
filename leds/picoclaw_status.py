@@ -28,6 +28,7 @@ import urllib.error
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from apa102 import Blinkt, sweep, fill, pulse, rainbow_cycle, flash, NUM_LEDS
+from led_api import start_api_server, get_state
 
 OPENCLAW_URL = "http://127.0.0.1:18789/__openclaw__/canvas/"
 THREADWEAVER_URL = "http://127.0.0.1:8000/api/settings"
@@ -357,6 +358,68 @@ class InferenceEngine:
         leds.show()
 
 
+# ─── API-driven patterns ────────────────────────────────────
+
+def api_status_pattern(leds, state, step):
+    """Solid color with gentle pulse — set_status."""
+    r, g, b = state["color"] or (0, 60, 255)
+    br = 0.15 + 0.1 * (math.sin(step * 0.08) ** 2)
+    leds.set_all(r, g, b, br)
+    leds.show()
+
+
+def api_progress_pattern(leds, state, step):
+    """Progress bar fill — set_progress."""
+    r, g, b = state["color"] or (0, 255, 0)
+    percent = state["percent"]
+    filled = percent * NUM_LEDS / 100.0
+
+    for i in range(NUM_LEDS):
+        if i < int(filled):
+            leds.set_pixel(i, r, g, b, 0.25)
+        elif i < filled + 1:
+            # Partial fill on the edge pixel
+            frac = filled - int(filled)
+            leds.set_pixel(i, int(r * frac), int(g * frac), int(b * frac), 0.2)
+        else:
+            leds.set_pixel(i, 0, 0, 0, 0)
+    leds.show()
+
+
+def api_pulse_success(leds, step):
+    """Firework-style green burst then fade."""
+    phase = step % 30
+    if phase < 5:
+        # Burst outward from center
+        center = NUM_LEDS // 2
+        spread = phase
+        for i in range(NUM_LEDS):
+            dist = abs(i - center)
+            if dist <= spread:
+                leds.set_pixel(i, 0, 255, 80, 0.4)
+            else:
+                leds.set_pixel(i, 0, 0, 0, 0)
+    else:
+        # Fade out
+        intensity = max(0, 1.0 - (phase - 5) / 20.0)
+        leds.set_all(0, int(255 * intensity), int(80 * intensity), 0.3 * intensity)
+    leds.show()
+
+
+def api_pulse_error(leds, step):
+    """Quick red flashes."""
+    phase = step % 12
+    if phase < 3:
+        leds.set_all(255, 0, 0, 0.4)
+    elif phase < 6:
+        leds.clear()
+    elif phase < 9:
+        leds.set_all(255, 0, 0, 0.3)
+    else:
+        leds.clear()
+    leds.show()
+
+
 # ─── Other patterns ─────────────────────────────────────────
 
 def degraded_pattern(leds, step):
@@ -385,18 +448,39 @@ def runtime_loop(leds):
     was_inferencing = False
 
     while running:
-        # Check inference frequently
+        # Check API state first — tool calls override everything
+        api = get_state()
+        if api["mode"] == "status":
+            api_status_pattern(leds, api, step)
+            step += 1
+            time.sleep(0.055)
+            continue
+        elif api["mode"] == "progress":
+            api_progress_pattern(leds, api, step)
+            step += 1
+            time.sleep(0.055)
+            continue
+        elif api["mode"] == "pulse_success":
+            api_pulse_success(leds, step)
+            step += 1
+            time.sleep(0.055)
+            continue
+        elif api["mode"] == "pulse_error":
+            api_pulse_error(leds, step)
+            step += 1
+            time.sleep(0.055)
+            continue
+
+        # Normal monitoring
         if step % 5 == 0:
             inferencing = check_inference_active()
 
         # Transition effects
         if inferencing and not was_inferencing:
-            # Just started inferencing — quick white flash
             flash(leds, 255, 255, 255, times=1, on_time=0.05, off_time=0.0, brightness=0.3)
         elif not inferencing and was_inferencing:
-            # Just finished — brief green flash then back to idle
             flash(leds, 0, 255, 80, times=2, on_time=0.08, off_time=0.05, brightness=0.3)
-            idle = IdleEngine()  # reset scanner position
+            idle = IdleEngine()
         was_inferencing = inferencing
 
         # Check service health less frequently
@@ -417,12 +501,15 @@ def runtime_loop(leds):
             idle.update(leds)
 
         step += 1
-        time.sleep(0.055)  # ~18fps, scanner moves at ~6 positions/sec
+        time.sleep(0.055)
 
 
 def main():
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
+
+    # Start LED control API on port 7777 (localhost only)
+    start_api_server(port=7777)
 
     with Blinkt(platform="rpi5", brightness=0.2) as leds:
         boot_sequence(leds)
