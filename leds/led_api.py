@@ -89,6 +89,13 @@ class LEDHandler(BaseHTTPRequestHandler):
             set_state(mode="pulse_error", color=COLOR_MAP["red"], message=body.get("message", ""), duration=3)
             self._respond(200, {"status": "ok", "mode": "pulse_error"})
 
+        elif self.path == "/flash":
+            color_name = body.get("color", "red")
+            color = COLOR_MAP.get(color_name, COLOR_MAP["red"])
+            duration = body.get("duration", 90)
+            set_state(mode="flash", color=color, message=body.get("message", ""), duration=duration)
+            self._respond(200, {"status": "ok", "mode": "flash", "color": color_name, "duration": duration})
+
         elif self.path == "/clear":
             set_state(mode="idle", color=None, message="", percent=0, duration=0)
             self._respond(200, {"status": "ok", "mode": "idle"})

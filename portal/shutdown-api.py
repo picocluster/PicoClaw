@@ -62,12 +62,9 @@ class Handler(BaseHTTPRequestHandler):
         self._respond(200, {"status": f"{action} initiated", "target": target})
 
         # Visual feedback before the cluster goes dark
-        if action == "restart":
-            # Amber pulse for 90s — long enough to cover the shutdown delay + reboot
-            led_call("set_status", {"color": "amber", "duration": 90})
-        else:
-            # Red pulse for 90s — shutdown imminent
-            led_call("set_status", {"color": "red", "duration": 90})
+        # Pulsing color — amber for restart, red for shutdown
+        color = "amber" if action == "restart" else "red"
+        led_call("set_status", {"color": color, "duration": 90})
 
         # Execute after response is sent
         cmd = "reboot" if action == "restart" else "shutdown -h now"

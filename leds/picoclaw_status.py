@@ -361,10 +361,28 @@ class InferenceEngine:
 # ─── API-driven patterns ────────────────────────────────────
 
 def api_status_pattern(leds, state, step):
-    """Solid color with gentle pulse — set_status."""
+    """Solid color with gentle pulse — set_status.
+
+    APA102 brightness is non-linear, so scale RGB values directly
+    with a cubic curve for a visible pulse from near-off to bright.
+    """
     r, g, b = state["color"] or (0, 60, 255)
-    br = 0.15 + 0.1 * (math.sin(step * 0.08) ** 2)
-    leds.set_all(r, g, b, br)
+    # Cubic pulse: intensity varies from ~0.02 to 1.0
+    raw = (math.sin(step * 0.08) ** 2)  # 0..1 sine squared
+    intensity = 0.02 + 0.98 * (raw ** 2)  # cubic curve
+    leds.set_all(int(r * intensity), int(g * intensity), int(b * intensity), 0.3)
+    leds.show()
+
+
+def api_flash_pattern(leds, state, step):
+    """Dramatic on/off flash — set_flash. Used for shutdown/restart warnings."""
+    r, g, b = state["color"] or (255, 0, 0)
+    # 4-frame cycle: ON, ON, OFF, OFF (~0.22s per cycle at 18fps)
+    phase = step % 8
+    if phase < 4:
+        leds.set_all(r, g, b, 0.5)
+    else:
+        leds.clear()
     leds.show()
 
 
@@ -467,6 +485,11 @@ def runtime_loop(leds):
             continue
         elif api["mode"] == "pulse_error":
             api_pulse_error(leds, step)
+            step += 1
+            time.sleep(0.055)
+            continue
+        elif api["mode"] == "flash":
+            api_flash_pattern(leds, api, step)
             step += 1
             time.sleep(0.055)
             continue
