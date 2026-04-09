@@ -363,14 +363,16 @@ class InferenceEngine:
 def api_status_pattern(leds, state, step):
     """Solid color with gentle pulse — set_status.
 
-    APA102 brightness is non-linear, so scale RGB values directly
-    with a cubic curve for a visible pulse from near-off to bright.
+    Combines RGB scaling and APA102 global brightness so all channels
+    dim proportionally, preserving hue from bright to dark.
     """
     r, g, b = state["color"] or (0, 60, 255)
-    # Cubic pulse: intensity varies from ~0.02 to 1.0
-    raw = (math.sin(step * 0.08) ** 2)  # 0..1 sine squared
-    intensity = 0.02 + 0.98 * (raw ** 2)  # cubic curve
-    leds.set_all(int(r * intensity), int(g * intensity), int(b * intensity), 0.3)
+    raw = (math.sin(step * 0.08) ** 2)  # 0..1
+    intensity = raw ** 2  # cubic curve, 0..1
+    # Scale RGB to preserve hue, and also scale global brightness
+    global_br = 0.02 + intensity * 0.48
+    rgb_scale = 0.1 + intensity * 0.9
+    leds.set_all(int(r * rgb_scale), int(g * rgb_scale), int(b * rgb_scale), global_br)
     leds.show()
 
 
