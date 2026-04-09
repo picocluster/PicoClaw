@@ -62,22 +62,6 @@ services:
     extra_hosts:
       - "picocrush:${CRUSH_IP:-10.1.10.221}"
 
-  shutdown-api:
-    image: python:3.12-slim
-    container_name: shutdown-api
-    restart: always
-    ports:
-      - "8888:8888"
-    volumes:
-      - ./portal/shutdown-api.py:/app/shutdown-api.py:ro
-      - /usr/bin/sudo:/usr/bin/sudo:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - SHUTDOWN_TOKEN=${SHUTDOWN_TOKEN:-picocluster-shutdown}
-      - CRUSH_IP=${CRUSH_IP:-10.1.10.221}
-    network_mode: "host"
-    command: python3 /app/shutdown-api.py
-
   caddy:
     image: caddy:alpine
     container_name: caddy

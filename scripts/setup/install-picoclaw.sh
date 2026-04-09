@@ -130,6 +130,17 @@ log "--- Step 5/5: Firewall ---"
 ufw allow 80/tcp comment "PicoClaw Portal" 2>/dev/null || true
 ufw allow 7777/tcp comment "LED API" 2>/dev/null || true
 ufw allow 8888/tcp comment "Shutdown API" 2>/dev/null || true
+
+# Install host-based shutdown API (not in Docker — needs system shutdown access)
+if [[ -f "$INSTALL_DIR/portal/shutdown-api.service" ]]; then
+  cp "$INSTALL_DIR/portal/shutdown-api.service" /etc/systemd/system/
+  echo "picocluster ALL=(ALL) NOPASSWD: /sbin/shutdown, /sbin/reboot, /usr/sbin/shutdown, /usr/sbin/reboot" > /etc/sudoers.d/picoclcaw-shutdown
+  chmod 440 /etc/sudoers.d/picoclcaw-shutdown
+  systemctl daemon-reload
+  systemctl enable shutdown-api
+  systemctl start shutdown-api
+  log "Shutdown API installed"
+fi
 ufw allow 18789/tcp comment "OpenClaw Gateway" 2>/dev/null || true
 ufw allow 18790/tcp comment "OpenClaw Dashboard (HTTPS via Caddy)" 2>/dev/null || true
 ufw allow 5174/tcp comment "ThreadWeaver HTTPS (via Caddy)" 2>/dev/null || true

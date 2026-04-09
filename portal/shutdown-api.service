@@ -1,0 +1,16 @@
+[Unit]
+Description=PicoClaw Shutdown/Restart API
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/picoclcaw/portal/shutdown-api.py
+Restart=always
+RestartSec=5
+User=root
+Environment=SHUTDOWN_TOKEN=picocluster-shutdown
+Environment=CRUSH_IP=10.1.10.221
+Environment=CRUSH_USER=picocluster
+
+[Install]
+WantedBy=multi-user.target
