@@ -111,10 +111,24 @@ ollama list
 The Pimoroni Blinkt! on picoclaw provides visual feedback:
 
 - **Scanning eye**: Idle — color-shifting Larson scanner with blink and look-around behaviors
-- **Green/cyan chase**: LLM inference active
+- **Green/cyan chase**: LLM inference active (color cycling)
+- **Purple pulse**: OpenClaw agent thinking
 - **Amber pulse**: Service degraded
 - **Red pulse**: Services down
 - **Boot sequence**: Rainbow → blue sweep → amber progress → green ready
+
+### LED MCP Server
+
+PicoClaw includes an MCP (Model Context Protocol) server that exposes the LEDs as AI tools. The LLM can control the physical LEDs from natural language:
+
+> **User:** "Make the LEDs purple"
+> **LLM:** *calls `set_led_color` tool* → Blinkt! turns purple
+
+Available tools: `set_led_color`, `set_led_progress`, `led_pulse_success`, `led_pulse_error`, `clear_leds`
+
+The MCP server auto-connects when ThreadWeaver starts. LED controls are also available on the portal page and via the HTTP API on port 7777.
+
+See [docs/led-tools.md](docs/led-tools.md) for the full API reference.
 
 ## Repository Structure
 
@@ -124,13 +138,16 @@ PicoClaw/
 ├── portal/                         # PicoClaw landing page (nginx on port 80)
 ├── openclaw/                       # OpenClaw Dockerfile + config
 ├── threadweaver/                   # ThreadWeaver Dockerfile + patches
-├── leds/                           # Blinkt! LED driver and status daemon
+├── leds/                           # Blinkt! LED driver, status daemon, MCP server
 ├── scripts/
 │   ├── setup/                      # Install, update, configure, validate scripts
 │   ├── imaging/                    # Image capture, shrink, resize, NVMe migration
 │   └── testing/                    # Stress tests and benchmarking
 └── docs/                           # Documentation
     ├── access-guide.md             # All access methods and troubleshooting
+    ├── led-tools.md                # LED API + MCP server reference
+    ├── demo-script.md              # Live demo walkthrough
+    ├── blog-post.md                # "Talk to Your AI and Watch It Light Up"
     ├── benchmark-report.md         # Power, thermal, performance data
     ├── storage-options.md          # Drive sizing recommendations
     └── roadmap.md                  # Project roadmap
@@ -167,6 +184,10 @@ PicoClaw/
 | OpenClaw Gateway | picoclaw | 18789 | openclaw |
 | OpenClaw HTTPS | picoclaw | 18790 | caddy |
 | Blinkt! LEDs | picoclaw | GPIO | native |
+| LED API | picoclaw | 7777 | native |
+| LED MCP Server | picoclaw | stdio | native (auto-connected) |
+| OpenClaw LED Bridge | picoclaw | — | native (log monitor) |
+| Shutdown API | picoclaw | 8888 | python |
 | Ollama | picocrush | 11434 | native |
 
 ## Default Credentials
