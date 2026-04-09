@@ -37,8 +37,11 @@ else
   log "New version available: $CURRENT → $LATEST"
 fi
 
-log "Rebuilding ThreadWeaver..."
+log "Updating PicoClaw repo..."
 cd "$INSTALL_DIR"
+git fetch origin && git reset --hard origin/main 2>&1 | tail -1
+
+log "Rebuilding ThreadWeaver..."
 docker compose build --no-cache threadweaver 2>&1 | tail -5
 docker compose up -d threadweaver 2>&1
 
