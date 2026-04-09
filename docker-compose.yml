@@ -16,8 +16,12 @@ services:
       - LLM_PROVIDER=local
       - LOCAL_BASE_URL=http://picocrush:11434/v1
       - LOCAL_MODEL=${DEFAULT_MODEL:-llama3.2:3b}
+      - LED_API_URL=http://host.docker.internal:7777
     extra_hosts:
       - "picocrush:${CRUSH_IP:-10.1.10.221}"
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./leds/mcp_server.py:/opt/mcp/led_server.py:ro
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://127.0.0.1:8000/api/settings"]
       interval: 30s
