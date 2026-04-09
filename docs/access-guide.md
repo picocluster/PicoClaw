@@ -6,10 +6,11 @@
 
 | Interface | HTTP (LAN) | HTTPS (secure) | Notes |
 |-----------|-----------|----------------|-------|
+| **PicoClaw Portal** | `http://picoclaw` | — | Landing page with status + docs |
 | **ThreadWeaver** | `http://picoclaw:5173` | `https://localhost:5174` | Chat UI — works over HTTP |
-| **OpenClaw Dashboard** | — | `https://localhost:18790` | Requires HTTPS secure context |
+| **OpenClaw Dashboard** | — | `https://localhost:18790` | Requires SSH tunnel + HTTPS |
 | **OpenClaw TUI** | `ssh picocluster@picoclaw` then `openclaw tui` | — | Terminal chat |
-| **llama-server API** | `http://picocrush:8080/v1` | — | OpenAI-compatible endpoint |
+| **Ollama API** | `http://picocrush:11434/v1` | — | OpenAI-compatible (picoclaw only) |
 
 ## Why OpenClaw Requires HTTPS
 
@@ -122,7 +123,7 @@ Configure a messaging channel for mobile access to your agent:
 |---------|-----------|-------|
 | SSH | Username / Password | `picocluster` / `picocluster` |
 | OpenClaw | Gateway Token | `picocluster-token` |
-| llama-server | Auth | None (firewall-restricted to picoclaw) |
+| Ollama | Auth | None (firewall-restricted to picoclaw) |
 
 **Change the defaults after setup:**
 
@@ -137,17 +138,18 @@ sudo docker restart openclaw
 
 ## Ports Reference
 
-| Port | Service | Protocol | Access |
-|------|---------|----------|--------|
-| 22 | SSH | TCP | LAN |
-| 5173 | ThreadWeaver UI | HTTP | LAN |
-| 5174 | ThreadWeaver UI | HTTPS (Caddy) | localhost/tunnel |
-| 8000 | ThreadWeaver API | HTTP | LAN |
-| 8080 | llama-server | HTTP | picoclaw only (firewall) |
-| 18789 | OpenClaw Gateway | HTTP/WS | LAN (API), localhost (dashboard) |
-| 18790 | OpenClaw Dashboard | HTTPS (Caddy) | localhost/tunnel |
-| 18791 | OpenClaw Control | TCP | blocked |
-| 18792 | OpenClaw CDP | TCP | blocked |
+| Port | Service | Node | Access |
+|------|---------|------|--------|
+| 80 | PicoClaw Portal | picoclaw | LAN |
+| 22 | SSH | both | LAN |
+| 5173 | ThreadWeaver UI | picoclaw | LAN |
+| 5174 | ThreadWeaver HTTPS | picoclaw | localhost/tunnel (Caddy) |
+| 8000 | ThreadWeaver API | picoclaw | LAN |
+| 11434 | Ollama | picocrush | picoclaw only (firewall) |
+| 18789 | OpenClaw Gateway | picoclaw | LAN (API/WS) |
+| 18790 | OpenClaw Dashboard | picoclaw | localhost/tunnel (Caddy HTTPS) |
+| 18791 | OpenClaw Control | picoclaw | blocked |
+| 18792 | OpenClaw CDP | picoclaw | blocked |
 
 ## Troubleshooting
 
@@ -159,19 +161,19 @@ ssh -L 18790:localhost:18790 picocluster@picoclaw
 Then: `https://localhost:18790`
 
 ### ThreadWeaver shows "No local models found"
-The llama-server on picocrush may not be running or the firewall is blocking:
+Ollama on picocrush may not be running or the firewall is blocking:
 ```bash
 ssh picocluster@picocrush
-curl http://localhost:8080/health
-sudo systemctl status llama-server
+ollama list
+sudo systemctl status ollama
 ```
 
 ### OpenClaw "LLM request timed out"
-The llama-server context size may be too small for OpenClaw's system prompt (~20K tokens):
+The model may not be loaded yet. Ollama loads models on first request:
 ```bash
 ssh picocluster@picocrush
-sudo model-switch --list    # Check active model
-# Ensure --ctx-size is 32768 in /etc/systemd/system/llama-server.service
+ollama list                  # Check available models
+ollama run llama3.2:3b       # Test interactively
 ```
 
 ### Can't reach picoclaw or picocrush by hostname
