@@ -162,6 +162,26 @@
     </div>
 
     <div class="section">
+      <h2>LED Control</h2>
+      <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem;">
+        <button onclick="ledCall('set_status',{color:'blue'})" style="background: #2060ff; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">Blue</button>
+        <button onclick="ledCall('set_status',{color:'purple'})" style="background: #7800ff; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">Purple</button>
+        <button onclick="ledCall('set_status',{color:'cyan'})" style="background: #00c8ff; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">Cyan</button>
+        <button onclick="ledCall('set_status',{color:'green'})" style="background: #00cc44; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">Green</button>
+        <button onclick="ledCall('set_status',{color:'amber'})" style="background: #ff8c00; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">Amber</button>
+        <button onclick="ledCall('set_status',{color:'red'})" style="background: #e03030; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">Red</button>
+        <button onclick="ledCall('set_status',{color:'white'})" style="background: #fff; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">White</button>
+      </div>
+      <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem;">
+        <button onclick="ledCall('pulse_success')" style="background: transparent; border: 1px solid var(--green); color: var(--green); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">Pulse Success</button>
+        <button onclick="ledCall('pulse_error')" style="background: transparent; border: 1px solid var(--red); color: var(--red); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">Pulse Error</button>
+        <input type="range" id="led-progress" min="0" max="100" value="0" oninput="ledCall('set_progress',{percent:parseInt(this.value),color:'green'})" style="flex: 1; min-width: 120px; accent-color: var(--accent);">
+        <span style="color: var(--dim); font-size: 0.8rem; align-self: center;" id="led-progress-label">Progress: 0%</span>
+        <button onclick="ledCall('clear')" style="background: transparent; border: 1px solid var(--border); color: var(--dim); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">Reset</button>
+      </div>
+    </div>
+
+    <div class="section">
       <h2>Installed Models</h2>
       <table>
         <thead><tr><th>Model</th><th>Type</th><th>Size</th></tr></thead>
@@ -300,6 +320,19 @@
 
     checkAll();
     setInterval(checkAll, 30000);
+
+    async function ledCall(endpoint, data) {
+      try {
+        await fetch('http://' + location.hostname + ':7777/' + endpoint, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data || {})
+        });
+        if (data && data.percent !== undefined) {
+          document.getElementById('led-progress-label').textContent = 'Progress: ' + data.percent + '%';
+        }
+      } catch(e) {}
+    }
 
     async function clusterAction(action, target) {
       const msg = document.getElementById('control-msg');
