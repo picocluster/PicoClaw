@@ -144,9 +144,9 @@
         <a href="https://localhost:18790" class="secondary">Open Dashboard</a>
       </div>
       <div class="card">
-        <h3>Ollama API</h3>
-        <div class="desc">OpenAI-compatible inference endpoint on picocrush. 9 models available, GPU-accelerated.</div>
-        <a href="http://picocrush:11434" class="secondary">API Endpoint</a>
+        <h3>Ollama (picocrush)</h3>
+        <div class="desc">OpenAI-compatible inference endpoint. 9 models, GPU-accelerated. Access via SSH to picocrush.</div>
+        <a href="#" onclick="navigator.clipboard.writeText('http://picocrush:11434/v1'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy API URL',1500); return false;" class="secondary">Copy API URL</a>
       </div>
     </div>
 
