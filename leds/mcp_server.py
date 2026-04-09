@@ -21,7 +21,7 @@ import json
 import urllib.request
 
 import os
-LED_API = os.environ.get("LED_API_URL", "http://127.0.0.1:7777")
+LED_API = os.environ.get("LED_API_URL", "http://172.17.0.1:7777")
 
 # ─── MCP Protocol ───────────────────────────────────────────
 

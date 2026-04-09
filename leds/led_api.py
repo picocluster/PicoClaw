@@ -114,8 +114,9 @@ class LEDHandler(BaseHTTPRequestHandler):
 
 
 def start_api_server(port=7777):
-    """Start the LED API server in a background thread."""
-    server = HTTPServer(("127.0.0.1", port), LEDHandler)
+    """Start the LED API server in a background thread. Binds to all interfaces
+    so Docker containers can reach it via the host gateway."""
+    server = HTTPServer(("0.0.0.0", port), LEDHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     return server
