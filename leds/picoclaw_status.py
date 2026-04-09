@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from apa102 import Blinkt, sweep, fill, pulse, rainbow_cycle, flash, NUM_LEDS
 from led_api import start_api_server, get_state
 
-OPENCLAW_URL = "http://127.0.0.1:18789/__openclaw__/canvas/"
+OPENCLAW_URL = "http://127.0.0.1:18789/"
 THREADWEAVER_URL = "http://127.0.0.1:8000/api/settings"
 OLLAMA_HEALTH_URL = "http://10.1.10.221:11434/api/tags"
 OLLAMA_PS_URL = "http://10.1.10.221:11434/api/ps"
