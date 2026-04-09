@@ -4,10 +4,10 @@
 
 ## Quick Reference
 
-| Interface | HTTP (LAN) | HTTPS (secure) | Notes |
+| Interface | HTTP (LAN) | HTTPS (tunnel) | Notes |
 |-----------|-----------|----------------|-------|
 | **PicoClaw Portal** | `http://picoclaw` | — | Landing page with status + docs |
-| **ThreadWeaver** | `http://picoclaw:5173` | `https://localhost:5174` | Chat UI — works over HTTP |
+| **ThreadWeaver** | — | `https://localhost:5174` | Chat UI — requires SSH tunnel |
 | **OpenClaw Dashboard** | — | `https://localhost:18790` | Requires SSH tunnel + HTTPS |
 | **OpenClaw TUI** | `ssh picocluster@picoclaw` then `openclaw tui` | — | Terminal chat |
 | **Ollama API** | `http://picocrush:11434/v1` | — | OpenAI-compatible (picoclaw only) |
@@ -50,25 +50,16 @@ Host picoclaw
 
 Then just `ssh picoclaw` and the tunnels are set up automatically.
 
-### Method 2: Direct HTTP (ThreadWeaver Only)
+### Method 2: OpenClaw CLI from the host
 
-ThreadWeaver works fine over plain HTTP since it doesn't require the Web Crypto API.
-
-```
-http://picoclaw:5173
-```
-
-This is the easiest way to chat with your local LLM. No tunnel or HTTPS needed.
-
-OpenClaw's API and WebSocket also work over HTTP — only the dashboard UI requires HTTPS:
+OpenClaw's CLI is installed on picoclaw and can be used without a browser:
 
 ```bash
-# OpenClaw health check (works over HTTP)
-curl http://picoclaw:18789/health
-
-# Send a message via OpenClaw API
+ssh picocluster@picoclaw
 openclaw agent --agent main --message "Hello"
 ```
+
+All of OpenClaw's raw HTTP endpoints are now bound to `127.0.0.1` only — so while `curl http://localhost:18789/__openclaw__/health` works from inside picoclaw, LAN clients must go through the HTTPS tunnel.
 
 ### Method 3: Tailscale (Remote Access)
 
@@ -80,18 +71,14 @@ For accessing PicoClaw from outside your local network, Tailscale provides a Wir
    sudo tailscale up
    ```
 
-2. Install Tailscale on your computer
+2. Install Tailscale on your computer.
 
-3. Access via Tailscale IP (HTTPS not required — Tailscale encrypts the tunnel):
-   ```
-   http://<picoclaw-tailscale-ip>:5173   # ThreadWeaver
-   http://<picoclaw-tailscale-ip>:18789  # OpenClaw (API only)
-   ```
-
-4. For the OpenClaw dashboard, still use SSH tunnel through Tailscale:
+3. SSH-tunnel as usual, substituting the Tailscale IP for the LAN IP:
    ```bash
-   ssh -L 18790:localhost:18790 picocluster@<picoclaw-tailscale-ip>
+   ssh -L 5174:localhost:5174 -L 18790:localhost:18790 picocluster@<picoclaw-tailscale-ip>
    ```
+
+   Then open `https://localhost:5174` (ThreadWeaver) or `https://localhost:18790` (OpenClaw) in your browser. ThreadWeaver and OpenClaw raw HTTP ports are not exposed on Tailscale either — use the tunnel.
 
 ### Method 4: OpenClaw TUI (Terminal)
 
@@ -140,14 +127,16 @@ sudo docker restart openclaw
 
 | Port | Service | Node | Access |
 |------|---------|------|--------|
-| 80 | PicoClaw Portal | picoclaw | LAN |
 | 22 | SSH | both | LAN |
-| 5173 | ThreadWeaver UI | picoclaw | LAN |
-| 5174 | ThreadWeaver HTTPS | picoclaw | localhost/tunnel (Caddy) |
-| 8000 | ThreadWeaver API | picoclaw | LAN |
+| 80 | PicoClaw Portal | picoclaw | LAN |
+| 5173 | ThreadWeaver UI | picoclaw | 127.0.0.1 only (via Caddy 5174) |
+| 5174 | ThreadWeaver HTTPS | picoclaw | Caddy, SNI=localhost (tunnel) |
+| 7777 | LED API | picoclaw | LAN |
+| 8000 | ThreadWeaver API | picoclaw | 127.0.0.1 only (via Caddy 5174) |
+| 8888 | Shutdown API | picoclaw | LAN |
 | 11434 | Ollama | picocrush | picoclaw only (firewall) |
-| 18789 | OpenClaw Gateway | picoclaw | LAN (API/WS) |
-| 18790 | OpenClaw Dashboard | picoclaw | localhost/tunnel (Caddy HTTPS) |
+| 18789 | OpenClaw Gateway | picoclaw | 127.0.0.1 only (via Caddy 18790) |
+| 18790 | OpenClaw Dashboard | picoclaw | Caddy, SNI=localhost (tunnel) |
 | 18791 | OpenClaw Control | picoclaw | blocked |
 | 18792 | OpenClaw CDP | picoclaw | blocked |
 
@@ -159,6 +148,9 @@ You're accessing port 18789 with HTTPS, or port 18790 without a tunnel. Use:
 ssh -L 18790:localhost:18790 picocluster@picoclaw
 ```
 Then: `https://localhost:18790`
+
+### "Secure Connection Failed" on ThreadWeaver
+You're trying to reach ThreadWeaver directly over HTTP at `http://picoclaw:5173` — that port is now bound to `127.0.0.1` only for security. Use the SSH tunnel plus `https://localhost:5174` instead.
 
 ### ThreadWeaver shows "No local models found"
 Ollama on picocrush may not be running or the firewall is blocking:

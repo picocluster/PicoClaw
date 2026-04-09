@@ -32,17 +32,28 @@ Controls the 8-LED Pimoroni Blinkt! strip on picoclaw's GPIO header.
 
 ### HTTP API
 
-Also available as raw HTTP on port 7777:
+Also available as raw HTTP on port 7777 (reachable from your LAN):
 
 ```bash
-curl -X POST http://picoclaw:7777/set_status -d '{"color":"purple"}'
-curl -X POST http://picoclaw:7777/set_progress -d '{"percent":50,"color":"green"}'
+curl -X POST http://picoclaw:7777/set_status -H 'Content-Type: application/json' -d '{"color":"purple"}'
+curl -X POST http://picoclaw:7777/set_progress -H 'Content-Type: application/json' -d '{"percent":50,"color":"green"}'
 curl -X POST http://picoclaw:7777/pulse_success
 curl -X POST http://picoclaw:7777/pulse_error
 curl -X POST http://picoclaw:7777/clear
 ```
 
 Colors: `red`, `green`, `blue`, `amber`, `cyan`, `purple`, `white`, `off`
+
+Or use the `pc-led` wrapper from any SSH session on picoclaw:
+
+```bash
+ssh picocluster@picoclaw
+pc-led color purple 10
+pc-led flash red
+pc-led progress 75 green
+pc-led success
+pc-led clear
+```
 
 ### Portal Controls
 
@@ -177,13 +188,16 @@ ThreadWeaver can connect to any stdio-based MCP server. Popular ones:
 - **@modelcontextprotocol/server-github** — GitHub API access
 - **@modelcontextprotocol/server-sqlite** — SQLite database queries
 
-Connect via the ThreadWeaver API:
+Connect via the ThreadWeaver API. The API is bound to `127.0.0.1` only, so run this from picoclaw itself (via SSH or by opening ThreadWeaver in the browser and using its settings UI):
 
 ```bash
-curl -X POST http://picoclaw:8000/api/mcp/connect \
+ssh picocluster@picoclaw
+curl -X POST http://127.0.0.1:8000/api/mcp/connect \
   -H "Content-Type: application/json" \
   -d '{"name":"filesystem","command":"npx","args":["-y","@modelcontextprotocol/server-filesystem","/tmp"]}'
 ```
+
+Or, if you've set up the SSH tunnel, you can hit the API through the Caddy HTTPS wrapper from your own machine: `https://localhost:5174/api/mcp/connect`.
 
 **Note:** Third-party servers need to be reachable from inside the ThreadWeaver container. You may need to mount them as volumes or install them in the Docker image.
 

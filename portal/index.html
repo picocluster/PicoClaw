@@ -105,6 +105,109 @@
     table tr:last-child td { border-bottom: none; }
     code { background: #1a1a3a; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.82rem; }
 
+    /* FAQ — <details> collapsibles */
+    details.faq {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 0.6rem;
+    }
+    details.faq[open] { border-color: var(--accent); }
+    details.faq summary {
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    details.faq summary::-webkit-details-marker { display: none; }
+    details.faq summary::before {
+      content: '▸';
+      color: var(--accent);
+      transition: transform 0.15s;
+      display: inline-block;
+      font-size: 0.8rem;
+    }
+    details.faq[open] summary::before { transform: rotate(90deg); }
+    details.faq .answer {
+      color: var(--dim);
+      font-size: 0.88rem;
+      line-height: 1.55;
+      margin-top: 0.8rem;
+      padding-top: 0.8rem;
+      border-top: 1px solid var(--border);
+    }
+    details.faq .answer p { margin-bottom: 0.6rem; }
+    details.faq .answer p:last-child { margin-bottom: 0; }
+    details.faq .answer code { background: #1a1a3a; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.8rem; }
+    details.faq .answer ul { margin: 0.4rem 0 0.6rem 1.2rem; }
+    details.faq .answer li { margin-bottom: 0.25rem; }
+
+    .faq-category { color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.5rem; font-weight: 600; }
+    .faq-category:first-child { margin-top: 0; }
+
+    /* Examples — copy-to-clipboard cards */
+    .example-group { margin-bottom: 1.6rem; }
+    .example-group h3 {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    .example-group .group-hint { color: var(--dim); font-size: 0.8rem; margin-bottom: 0.8rem; }
+    .example {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.7rem 0.9rem;
+      margin-bottom: 0.5rem;
+      transition: border-color 0.15s;
+    }
+    .example:hover { border-color: var(--accent); }
+    .example .prompt {
+      flex: 1;
+      font-family: inherit;
+      font-size: 0.85rem;
+      color: var(--text);
+      line-height: 1.45;
+      word-wrap: break-word;
+    }
+    .example .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--dim);
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: inherit;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .example .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .example .copy-btn.copied { background: var(--green); border-color: var(--green); color: #000; }
+
+    .docs-link {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    .docs-link:hover { border-color: var(--accent); color: var(--accent); }
+
     .footer { text-align: center; color: var(--dim); font-size: 0.8rem; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
     .footer a { color: var(--accent); text-decoration: none; }
   </style>
@@ -269,6 +372,388 @@
     </div>
 
     <div class="section">
+      <h2>Example Prompts</h2>
+      <p style="color: var(--dim); font-size: 0.9rem; margin-bottom: 1rem;">
+        Copy any prompt and paste it into ThreadWeaver. For tool-heavy workflows, use <code>llama3.1:8b</code> or switch to an external model like Claude or GPT-4.
+      </p>
+
+      <div class="example-group">
+        <h3>💡 LED Control</h3>
+        <div class="group-hint">5 tools in the <code>leds</code> MCP server</div>
+        <div class="example">
+          <div class="prompt">Make the LEDs purple.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Flash the LEDs red three times.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Show a progress bar at 75% in green.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Celebrate — do a success pulse.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Cycle through red, green, and blue, pausing one second between each color.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+      </div>
+
+      <div class="example-group">
+        <h3>🌡️ System Monitoring</h3>
+        <div class="group-hint">6 tools in the <code>system</code> MCP server</div>
+        <div class="example">
+          <div class="prompt">What's the CPU temperature right now?</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">How much memory is free on picoclaw?</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">How long has picoclaw been running?</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Give me a one-paragraph summary of picoclaw's current state: CPU, memory, disk, uptime, and temperature.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+      </div>
+
+      <div class="example-group">
+        <h3>🧠 Model Management</h3>
+        <div class="group-hint">4 tools in the <code>picocrush</code> MCP server</div>
+        <div class="example">
+          <div class="prompt">What models are installed on picocrush?</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Which model is currently loaded in GPU memory?</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">List all the models and tell me which one is the smallest.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+      </div>
+
+      <div class="example-group">
+        <h3>🕒 Time and Dates</h3>
+        <div class="group-hint">4 tools in the <code>time</code> MCP server</div>
+        <div class="example">
+          <div class="prompt">What time is it right now and what day of the week?</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">How many days until New Year's Eve?</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Format 12345 seconds as days, hours, minutes, and seconds.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+      </div>
+
+      <div class="example-group">
+        <h3>📁 Files (Sandboxed)</h3>
+        <div class="group-hint">5 tools in the <code>files</code> MCP server, sandboxed to <code>/tmp/picoclcaw-sandbox</code></div>
+        <div class="example">
+          <div class="prompt">Write a file called greeting.txt containing "Hello from PicoClaw".</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Create a shopping list file with apples, bread, milk, eggs, and coffee, one per line.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">List all files in the sandbox.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Write a JSON config file called config.json containing keys "name" (PicoClaw), "version" (1.0), and "features" (a list with chat, tools, and LEDs).</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+      </div>
+
+      <div class="example-group">
+        <h3>🎯 Multi-Tool Workflows</h3>
+        <div class="group-hint">These chain several tools. Use <code>llama3.1:8b</code> or an external provider for best results.</div>
+        <div class="example">
+          <div class="prompt">Check the CPU temperature. If it's above 60°C, flash the LEDs red. If it's below 50°C, do a green success pulse. Otherwise set the LEDs to amber.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Write a status report to status.txt containing the current CPU temperature, memory usage, uptime, and installed models on picocrush.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Tell me the current time, the uptime, the 5-minute load average, and the disk usage. Format it as a markdown table.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">Celebrate a successful task: do a green success pulse, wait one second, then write a file called celebration.txt containing "completed at " followed by the current time.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+      </div>
+
+      <div class="example-group">
+        <h3>💻 Code &amp; Reasoning</h3>
+        <div class="group-hint">Switch to <code>qwen2.5:3b</code> or <code>starcoder2:3b</code> for code, <code>deepseek-r1:7b</code> for reasoning.</div>
+        <div class="example">
+          <div class="prompt">Write a Python function that takes a list of numbers and returns the two largest without using sort() or max().</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">A farmer has chickens and cows. There are 30 heads and 74 legs total. How many of each? Show your reasoning.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">If a bat and a ball cost $1.10 total, and the bat costs $1 more than the ball, how much does the ball cost? Explain your reasoning.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+      </div>
+
+      <div class="example-group">
+        <h3>🖼️ Vision (with <code>llava:7b</code> or <code>moondream:1.8b</code>)</h3>
+        <div class="group-hint">Attach an image via ThreadWeaver's upload button before sending these.</div>
+        <div class="example">
+          <div class="prompt">Describe what you see in this image in two sentences.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+        <div class="example">
+          <div class="prompt">What text is visible in this image? Just the text, no commentary.</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+        </div>
+      </div>
+
+      <a class="docs-link" href="https://github.com/picocluster/PicoClaw/blob/main/docs/examples.md" target="_blank">More examples in docs/examples.md →</a>
+    </div>
+
+    <div class="section">
+      <h2>Frequently Asked Questions</h2>
+
+      <div class="faq-category">Getting started</div>
+
+      <details class="faq">
+        <summary>How do I start chatting with ThreadWeaver?</summary>
+        <div class="answer">
+          <p>ThreadWeaver is served over HTTPS through an SSH tunnel. Open a terminal on your computer and run:</p>
+          <p><code>ssh -L 5174:localhost:5174 -L 18790:localhost:18790 picocluster@picoclaw</code></p>
+          <p>Leave that terminal open. Then in your browser, visit <code>https://localhost:5174</code>. Accept the self-signed cert warning on first visit — the cert is issued by Caddy on picoclaw and your traffic is already encrypted by SSH.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>Why do I need an SSH tunnel?</summary>
+        <div class="answer">
+          <p>For security. ThreadWeaver and OpenClaw are bound only to picoclaw's loopback interface (<code>127.0.0.1</code>), so nothing on your LAN can reach them directly without authenticating via SSH first.</p>
+          <p>The tunnel forwards two local ports (<code>5174</code>, <code>18790</code>) to picoclaw's Caddy HTTPS wrapper, which reverse-proxies to the raw HTTP ports inside picoclaw.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>My browser says the certificate is invalid. Is that safe?</summary>
+        <div class="answer">
+          <p>Yes, for this setup. Caddy uses a locally-issued certificate for <code>localhost</code>, not one from a public CA (public CAs won't issue for <code>localhost</code>). Your traffic is already encrypted twice: once by SSH (the tunnel) and once by TLS (Caddy). The warning is about trust, not encryption.</p>
+          <p>Click "Advanced → Proceed to localhost" and you're good.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>Can I access PicoClaw from outside my home network?</summary>
+        <div class="answer">
+          <p>Not by default. For remote access, install <a href="https://tailscale.com" style="color: var(--accent);" target="_blank">Tailscale</a> on picoclaw and your remote devices. Then use the Tailscale IP instead of the LAN IP in your SSH tunnel command:</p>
+          <p><code>ssh -L 5174:localhost:5174 -L 18790:localhost:18790 picocluster@&lt;tailscale-ip&gt;</code></p>
+          <p>Tailscale wraps everything in a WireGuard VPN and handles NAT traversal automatically.</p>
+        </div>
+      </details>
+
+      <div class="faq-category">Models &amp; LLMs</div>
+
+      <details class="faq">
+        <summary>Which model should I use for what?</summary>
+        <div class="answer">
+          <p><strong>General chat:</strong> <code>llama3.1:8b</code> — best quality/speed balance<br>
+          <strong>Fast one-shots:</strong> <code>llama3.2:3b</code> — starts instantly<br>
+          <strong>Reasoning/math:</strong> <code>deepseek-r1:7b</code> — shows its work<br>
+          <strong>Code:</strong> <code>qwen2.5:3b</code> or <code>starcoder2:3b</code><br>
+          <strong>Images:</strong> <code>llava:7b</code> or <code>moondream:1.8b</code><br>
+          <strong>Tool-heavy workflows:</strong> <code>llama3.1:8b</code> (most reliable of the local set)</p>
+          <p>Switch models from the ThreadWeaver settings panel (top right).</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>Can I use Claude, GPT, Gemini, or Grok instead of the local models?</summary>
+        <div class="answer">
+          <p>Yes. ThreadWeaver supports five providers: <code>local</code> (Ollama), <code>anthropic</code>, <code>openai</code>, <code>gemini</code>, and <code>grok</code>.</p>
+          <p>Open ThreadWeaver → Settings → paste your API key → pick a model → chat. You can switch providers mid-conversation. Your API keys are stored on picoclaw and only used to authenticate with that provider.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>If I use an external LLM, can it still use the local MCP tools?</summary>
+        <div class="answer">
+          <p><strong>Yes, fully.</strong> Tool execution always happens on picoclaw. The external LLM only sees tool schemas and decides <em>when</em> to call them. The flow is:</p>
+          <ul>
+            <li>You ask the LLM "make the LEDs purple"</li>
+            <li>ThreadWeaver sends your message plus the 28 tool schemas to the external API</li>
+            <li>The LLM replies with a tool call: <code>{"tool": "set_led_color", "args": {"color": "purple"}}</code></li>
+            <li>ThreadWeaver executes the tool locally on picoclaw</li>
+            <li>Tool result goes back to the LLM, which writes its final text reply</li>
+          </ul>
+          <p>The external LLM never touches your hardware directly — picoclaw acts as the trusted executor. All 28 tools work with every provider. In practice, external models like Claude and GPT-4 are often <em>better</em> at multi-step tool workflows than the smaller local models.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>What gets sent to external LLM providers?</summary>
+        <div class="answer">
+          <p>When you use an external provider, the entire conversation flows through that provider's API, including: your prompts, the LLM's replies, all 28 tool schemas, tool call results (CPU temp, file contents, model lists, etc.), and any attached images.</p>
+          <p><strong>Not sent:</strong> your API keys (used only to authenticate), files outside the sandbox, anything on your LAN that the tools don't explicitly fetch, other conversations, raw local model inference.</p>
+          <p>For strict privacy, stick with the <code>local</code> provider. Everything stays on picoclaw/picocrush.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>How do I add a new Ollama model?</summary>
+        <div class="answer">
+          <p>SSH to picocrush and use <code>pc-pull</code>:</p>
+          <p><code>ssh picocluster@picocrush</code><br>
+          <code>pc-pull llama3.3:70b-instruct-q4_K_M</code></p>
+          <p>Browse <a href="https://ollama.com/library" style="color: var(--accent);" target="_blank">ollama.com/library</a> to find model tags. You can also ask the LLM to do it: "Pull the moondream model from the Ollama library."</p>
+        </div>
+      </details>
+
+      <div class="faq-category">Tools &amp; capabilities</div>
+
+      <details class="faq">
+        <summary>What can the LLM actually do with the 28 MCP tools?</summary>
+        <div class="answer">
+          <p><strong>LEDs (5):</strong> colors, animations, progress bars, success/error pulses<br>
+          <strong>System (6):</strong> CPU temp, memory, disk, uptime, network, load<br>
+          <strong>Picocrush (4):</strong> list/pull Ollama models, GPU memory, loaded models<br>
+          <strong>Time (4):</strong> current time, day of week, durations, countdowns<br>
+          <strong>Files (5):</strong> sandboxed read/write/list/delete in <code>/tmp/picoclcaw-sandbox</code><br>
+          <strong>Built-in (4):</strong> ThreadWeaver's own file/directory/command tools</p>
+          <p>Try the <strong>Example Prompts</strong> section above or see <a href="https://github.com/picocluster/PicoClaw/blob/main/docs/mcp-tools.md" style="color: var(--accent);" target="_blank">docs/mcp-tools.md</a> for the full reference.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>Can the LLM read files on my computer?</summary>
+        <div class="answer">
+          <p><strong>No.</strong> The <code>files</code> MCP server is sandboxed to <code>/tmp/picoclcaw-sandbox</code> inside the ThreadWeaver container. Python's <code>Path.resolve()</code> + <code>relative_to()</code> checks reject any path that escapes the sandbox, so attempts like <code>../../../etc/passwd</code> fail loudly.</p>
+          <p>Your computer's filesystem is never exposed. The LLM talks to tools on picoclaw; picoclaw talks to its own sandbox. There's no path from the LLM to your laptop unless you paste the contents yourself.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>Can I add my own MCP tools?</summary>
+        <div class="answer">
+          <p>Yes. There's a ~20-line Python template in <a href="https://github.com/picocluster/PicoClaw/blob/main/docs/mcp-tools.md" style="color: var(--accent);" target="_blank">docs/mcp-tools.md</a>. Drop a new file in <code>/opt/picoclcaw/mcp/</code>, add one line to <code>threadweaver/start.sh</code>, and rebuild the ThreadWeaver container with <code>sudo docker compose build threadweaver &amp;&amp; sudo docker compose up -d threadweaver</code>.</p>
+          <p>ThreadWeaver also supports connecting to any stdio-based MCP server dynamically via its API — no rebuild required for third-party servers.</p>
+        </div>
+      </details>
+
+      <div class="faq-category">Operations</div>
+
+      <details class="faq">
+        <summary>How do I shut down or restart the cluster?</summary>
+        <div class="answer">
+          <p><strong>From this control panel:</strong> use the Cluster Control buttons above.</p>
+          <p><strong>From the terminal:</strong></p>
+          <p><code>ssh picocluster@picoclaw</code><br>
+          <code>pc-restart</code> or <code>pc-shutdown</code><br>
+          <code>pc-restart picoclaw</code> (one node only)</p>
+          <p>Blue LED pulses signal the shutdown before the node goes down.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>How do I update ThreadWeaver or OpenClaw?</summary>
+        <div class="answer">
+          <p><code>ssh picocluster@picoclaw</code>, then one of:</p>
+          <p><code>pc-update-threadweaver</code> — rebuild ThreadWeaver from latest main<br>
+          <code>pc-update-openclaw</code> — rebuild OpenClaw with latest npm package<br>
+          <code>pc-update</code> — update everything (containers + portal + models)<br>
+          <code>pc-update-models</code> — update Ollama models on picocrush</p>
+          <p>All scripts <code>git pull</code> the PicoClaw repo first. They're safe to run on a live cluster — individual containers restart with brief downtime.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>What do the LED colors mean?</summary>
+        <div class="answer">
+          <p><strong>Teal scanner:</strong> idle, all healthy<br>
+          <strong>Purple pulse:</strong> agent is thinking<br>
+          <strong>Cyan flash:</strong> agent is using a tool<br>
+          <strong>Green burst:</strong> operation succeeded<br>
+          <strong>Red flash:</strong> operation failed<br>
+          <strong>Blue progress bar:</strong> long operation in progress<br>
+          <strong>Amber solid:</strong> warning (high temp, degraded service)<br>
+          <strong>Blue pulse then fade:</strong> system shutting down</p>
+          <p>Drive the LEDs manually via the control panel above, via <code>pc-led</code> on the terminal, or via the LED API at <code>http://picoclaw:7777/</code>.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>How do I check if everything is healthy?</summary>
+        <div class="answer">
+          <p>The status bar at the top of this page updates every 30 seconds.</p>
+          <p>For a full snapshot, SSH in and run <code>pc-status</code> on either node. It shows container state, systemd services, HTTP health checks, disk, and load. On picocrush it also shows Ollama state, loaded models, and unified memory usage.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>A service isn't responding — what do I do?</summary>
+        <div class="answer">
+          <p>First, run <code>pc-status</code> to see which service is actually down.</p>
+          <p><strong>Container unhealthy:</strong> <code>cd /opt/picoclcaw &amp;&amp; sudo docker compose logs &lt;service&gt;</code> then <code>sudo docker compose restart &lt;service&gt;</code></p>
+          <p><strong>Systemd service:</strong> <code>sudo systemctl restart picoclaw-leds</code> or <code>shutdown-api</code></p>
+          <p><strong>Ollama unreachable:</strong> <code>ssh picocluster@picocrush</code>, then <code>sudo systemctl restart ollama</code></p>
+          <p><strong>Nuclear option:</strong> <code>pc-restart all</code></p>
+        </div>
+      </details>
+
+      <div class="faq-category">Privacy &amp; security</div>
+
+      <details class="faq">
+        <summary>Is my data private when I use the local LLM?</summary>
+        <div class="answer">
+          <p>Yes. The <code>local</code> provider runs inference on picocrush (Jetson Orin Nano) using Ollama. The data path is entirely inside your LAN: browser → SSH tunnel → ThreadWeaver on picoclaw → Ollama on picocrush. Nothing leaves your network.</p>
+          <p>Model weights are stored locally on picocrush's NVMe. Conversations are stored in ThreadWeaver's database on picoclaw. External API calls only happen if you explicitly switch to an external provider.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>What's the difference between ThreadWeaver and OpenClaw?</summary>
+        <div class="answer">
+          <p><strong>ThreadWeaver</strong> is chat-first. Conversations you can branch, save, search, and switch models in mid-thread. Best for talking to the model and occasionally using tools.</p>
+          <p><strong>OpenClaw</strong> is an agent framework. You give it a goal and it autonomously plans, uses tools, browses the web, and reports back. Also integrates with Telegram/Discord/Slack for mobile access.</p>
+          <p>Both run simultaneously, both use the same Ollama backend, and both access the same MCP tools.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>How do I change the default passwords and tokens?</summary>
+        <div class="answer">
+          <p><strong>SSH password</strong> (do this first):</p>
+          <p><code>passwd</code> — on each node after SSH login</p>
+          <p><strong>OpenClaw gateway token:</strong></p>
+          <p><code>openclaw config set gateway.auth.token "new-token"</code><br>
+          <code>sudo docker restart openclaw</code></p>
+          <p><strong>Shutdown API token:</strong> edit <code>/etc/systemd/system/shutdown-api.service.d/override.conf</code> and set <code>Environment=SHUTDOWN_TOKEN=new-token</code>, then <code>sudo systemctl daemon-reload &amp;&amp; sudo systemctl restart shutdown-api</code>.</p>
+        </div>
+      </details>
+
+      <a class="docs-link" href="https://github.com/picocluster/PicoClaw/blob/main/docs/faq.md" target="_blank">Full FAQ with 25 questions in docs/faq.md →</a>
+    </div>
+
+    <div class="section">
       <h2>Hardware</h2>
       <table>
         <thead><tr><th>Node</th><th>Hardware</th><th>Role</th></tr></thead>
@@ -340,13 +825,31 @@
     }
 
     function checkAll() {
-      checkService('http://' + location.hostname + ':8000/api/settings', 'dot-tw', 'status-tw', 'ThreadWeaver');
-      checkService('http://' + location.hostname + ':18789/', 'dot-oc', 'status-oc', 'OpenClaw');
-      checkService('http://' + location.hostname + ':8000/api/models/local', 'dot-ol', 'status-ol', 'Ollama');
+      // These hit nginx proxy endpoints on the same origin so the browser
+      // doesn't need to reach the localhost-only ThreadWeaver/OpenClaw ports.
+      checkService('/healthz/threadweaver', 'dot-tw', 'status-tw', 'ThreadWeaver');
+      checkService('/healthz/openclaw',    'dot-oc', 'status-oc', 'OpenClaw');
+      checkService('/healthz/ollama',      'dot-ol', 'status-ol', 'Ollama');
     }
 
     checkAll();
     setInterval(checkAll, 30000);
+
+    // Copy-to-clipboard for example prompts
+    function copyPrompt(btn) {
+      const text = btn.parentElement.querySelector('.prompt').textContent.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      }).catch(() => {
+        btn.textContent = 'Failed';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+      });
+    }
 
     async function ledCall(endpoint, data) {
       try {
