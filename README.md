@@ -125,7 +125,6 @@ PicoClaw/
 ├── openclaw/                       # OpenClaw Dockerfile + config
 ├── threadweaver/                   # ThreadWeaver Dockerfile + patches
 ├── leds/                           # Blinkt! LED driver and status daemon
-├── ansible/                        # Ansible provisioning playbooks
 ├── scripts/
 │   ├── setup/                      # Install, update, configure, validate scripts
 │   ├── imaging/                    # Image capture, shrink, resize, NVMe migration

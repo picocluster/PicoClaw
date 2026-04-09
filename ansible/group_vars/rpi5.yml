@@ -1,8 +1,0 @@
----
-# RPi5-specific variables
-node_version: "24"
-openclaw_user: picocluster
-openclaw_home: "/home/{{ openclaw_user }}"
-openclaw_config_dir: "{{ openclaw_home }}/.config/openclaw"
-openclaw_default_model: "llama-3.2-3b-instruct"
-swap_size_mb: 2048
