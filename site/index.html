@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PicoCluster Claw — Your Private AI Cluster</title>
+  <meta name="description" content="A Raspberry Pi 5 + NVIDIA Jetson Orin Nano AI appliance. 9 local LLMs, 28 MCP tools, LED status feedback, zero cloud dependency.">
+  <style>
+    :root {
+      --blue: #1b75ba;
+      --blue-light: #2a8fd4;
+      --blue-dark: #0f2d52;
+      --red: #e63946;
+      --red-light: #ff4d5a;
+      --bg: #0a0e1a;
+      --bg-card: #111827;
+      --bg-section: #0d1220;
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --dim: #94a3b8;
+      --white: #f8fafc;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --cyan: #22d3ee;
+      --purple: #a78bfa;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* Nav */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(10, 14, 26, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+    }
+    nav .inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    nav .logo {
+      font-size: 1.15rem; font-weight: 700; color: var(--white);
+      text-decoration: none;
+    }
+    nav .logo span { color: var(--blue); }
+    nav .logo .claw { color: var(--red); }
+    nav .links { display: flex; gap: 1.5rem; }
+    nav .links a {
+      color: var(--dim); text-decoration: none; font-size: 0.85rem;
+      font-weight: 500; transition: color 0.2s;
+    }
+    nav .links a:hover { color: var(--white); }
+
+    /* Hero */
+    .hero {
+      padding: 10rem 2rem 6rem;
+      text-align: center;
+      background: radial-gradient(ellipse at 30% 20%, rgba(27,117,186,0.15) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 80%, rgba(230,57,70,0.08) 0%, transparent 50%);
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 .blue { color: var(--blue-light); }
+    .hero h1 .red { color: var(--red); }
+    .hero .subtitle {
+      font-size: 1.25rem;
+      color: var(--dim);
+      max-width: 700px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero .stats {
+      display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+    .hero .stat {
+      text-align: center;
+    }
+    .hero .stat .num {
+      font-size: 2.5rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--blue-light), var(--red-light));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero .stat .label { font-size: 0.8rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .cta-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block; padding: 0.8rem 2rem; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 600; text-decoration: none; transition: all 0.2s;
+    }
+    .btn-blue { background: var(--blue); color: var(--white); }
+    .btn-blue:hover { background: var(--blue-light); transform: translateY(-1px); }
+    .btn-red { background: var(--red); color: var(--white); }
+    .btn-red:hover { background: var(--red-light); transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--dim); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* Sections */
+    section { padding: 5rem 2rem; }
+    section:nth-child(even) { background: var(--bg-section); }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-title {
+      font-size: 2rem; font-weight: 700; text-align: center; margin-bottom: 0.8rem;
+    }
+    .section-title .blue { color: var(--blue-light); }
+    .section-title .red { color: var(--red); }
+    .section-sub {
+      text-align: center; color: var(--dim); font-size: 1.05rem;
+      max-width: 650px; margin: 0 auto 3rem;
+    }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card:hover { border-color: var(--blue); transform: translateY(-2px); }
+    .card.red-border:hover { border-color: var(--red); }
+    .card .icon { font-size: 2rem; margin-bottom: 1rem; }
+    .card h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .card p { color: var(--dim); font-size: 0.9rem; line-height: 1.6; }
+    .card .tag {
+      display: inline-block; padding: 0.2rem 0.6rem; border-radius: 6px;
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; margin-bottom: 0.8rem;
+    }
+    .tag-blue { background: rgba(27,117,186,0.15); color: var(--blue-light); }
+    .tag-red { background: rgba(230,57,70,0.15); color: var(--red-light); }
+    .tag-green { background: rgba(74,222,128,0.15); color: var(--green); }
+    .tag-purple { background: rgba(167,139,250,0.15); color: var(--purple); }
+
+    /* Architecture */
+    .arch-diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2.5rem;
+      font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: var(--dim);
+      overflow-x: auto;
+      white-space: pre;
+      max-width: 800px;
+      margin: 0 auto 3rem;
+    }
+    .arch-diagram .blue { color: var(--blue-light); }
+    .arch-diagram .red { color: var(--red-light); }
+    .arch-diagram .green { color: var(--green); }
+    .arch-diagram .cyan { color: var(--cyan); }
+    .arch-diagram .purple { color: var(--purple); }
+    .arch-diagram .amber { color: var(--amber); }
+
+    /* Models table */
+    table { width: 100%; border-collapse: collapse; }
+    table th {
+      text-align: left; color: var(--dim); font-weight: 600;
+      padding: 0.7rem 1rem; border-bottom: 2px solid var(--border);
+      font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    table td {
+      padding: 0.7rem 1rem; border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    table tr:last-child td { border-bottom: none; }
+    table tr:hover td { background: rgba(27,117,186,0.05); }
+    table code {
+      background: rgba(27,117,186,0.1); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.82rem;
+    }
+
+    /* FAQ */
+    details.faq {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.3rem;
+      margin-bottom: 0.7rem;
+      transition: border-color 0.2s;
+    }
+    details.faq[open] { border-color: var(--blue); }
+    details.faq summary {
+      cursor: pointer; font-weight: 600; font-size: 0.95rem;
+      list-style: none; display: flex; align-items: center; gap: 0.6rem;
+    }
+    details.faq summary::-webkit-details-marker { display: none; }
+    details.faq summary::before {
+      content: '\25B8'; color: var(--blue); transition: transform 0.15s;
+      display: inline-block; font-size: 0.8rem;
+    }
+    details.faq[open] summary::before { transform: rotate(90deg); }
+    details.faq .answer {
+      color: var(--dim); font-size: 0.88rem; line-height: 1.6;
+      margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border);
+    }
+    details.faq .answer code { background: rgba(27,117,186,0.1); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.8rem; }
+
+    /* Two-col */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+    .two-col h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; }
+    .two-col p { color: var(--dim); margin-bottom: 1rem; }
+    .two-col ul { list-style: none; padding: 0; }
+    .two-col ul li { padding: 0.4rem 0; color: var(--dim); font-size: 0.9rem; }
+    .two-col ul li::before { content: '\2713'; color: var(--green); margin-right: 0.6rem; font-weight: bold; }
+
+    /* Footer */
+    footer {
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.85rem;
+    }
+    footer a { color: var(--blue-light); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    footer .links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem; }
+
+    /* Power badge */
+    .power-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 100px; padding: 0.5rem 1.2rem;
+      font-size: 0.8rem; color: var(--dim);
+    }
+    .power-badge .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 8px var(--green);
+    }
+
+    /* LED strip visualization */
+    .led-strip {
+      display: flex; gap: 6px; justify-content: center;
+      margin: 2rem 0;
+    }
+    .led-strip .led {
+      width: 20px; height: 20px; border-radius: 50%;
+      animation: led-pulse 2s ease-in-out infinite;
+    }
+    @keyframes led-pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    .led-strip .led:nth-child(1) { background: var(--blue); animation-delay: 0s; }
+    .led-strip .led:nth-child(2) { background: var(--blue-light); animation-delay: 0.15s; }
+    .led-strip .led:nth-child(3) { background: var(--cyan); animation-delay: 0.3s; }
+    .led-strip .led:nth-child(4) { background: var(--green); animation-delay: 0.45s; }
+    .led-strip .led:nth-child(5) { background: var(--cyan); animation-delay: 0.6s; }
+    .led-strip .led:nth-child(6) { background: var(--blue-light); animation-delay: 0.75s; }
+    .led-strip .led:nth-child(7) { background: var(--blue); animation-delay: 0.9s; }
+    .led-strip .led:nth-child(8) { background: var(--purple); animation-delay: 1.05s; }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="inner">
+    <a href="#" class="logo"><span>Pico</span>Cluster <span class="claw">Claw</span></a>
+    <div class="links">
+      <a href="#what">What</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#software">Software</a>
+      <a href="#tools">Tools</a>
+      <a href="#models">Models</a>
+      <a href="#asg">AgentStateGraph</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/picocluster/PicoCluster-Claw" target="_blank">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="power-badge"><div class="dot"></div> Private AI &mdash; nothing leaves your network</div>
+  <h1 style="margin-top:1.5rem">
+    <span class="blue">PicoCluster</span> <span class="red">Claw</span>
+  </h1>
+  <p class="subtitle">
+    A Raspberry Pi 5 + NVIDIA Jetson Orin Nano AI appliance. Chat with 9 local LLMs, control 28 MCP tools, watch the LEDs respond &mdash; all without an internet connection.
+  </p>
+  <div class="stats">
+    <div class="stat"><div class="num">2</div><div class="label">Nodes</div></div>
+    <div class="stat"><div class="num">9</div><div class="label">LLM Models</div></div>
+    <div class="stat"><div class="num">28</div><div class="label">MCP Tools</div></div>
+    <div class="stat"><div class="num">5</div><div class="label">Providers</div></div>
+    <div class="stat"><div class="num">&lt;20W</div><div class="label">Total Power</div></div>
+  </div>
+  <div class="led-strip">
+    <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+    <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+  </div>
+  <div class="cta-group">
+    <a href="https://github.com/picocluster/PicoCluster-Claw" class="btn btn-blue">View on GitHub</a>
+    <a href="https://picocluster.com" class="btn btn-outline">PicoCluster.com</a>
+  </div>
+</div>
+
+<!-- What is it -->
+<section id="what">
+  <div class="container">
+    <h2 class="section-title">What is <span class="blue">PicoCluster</span> <span class="red">Claw</span>?</h2>
+    <p class="section-sub">A two-node AI cluster that fits on your desk. Run local LLMs with GPU acceleration, chat through a browser UI, and let the AI control LEDs, read sensors, manage files, and more &mdash; all on your own hardware.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">&#x1F9E0;</div>
+        <span class="tag tag-blue">RPi5 &mdash; clusterclaw</span>
+        <h3>Agent Orchestrator</h3>
+        <p>Raspberry Pi 5 (8/16GB) runs the web UIs, MCP tool servers, LED status daemon, and Docker containers for ThreadWeaver, OpenClaw, and Caddy HTTPS. The brain that coordinates everything.</p>
+      </div>
+      <div class="card red-border">
+        <div class="icon">&#x1F680;</div>
+        <span class="tag tag-red">Jetson &mdash; clustercrush</span>
+        <h3>GPU Inference Engine</h3>
+        <p>NVIDIA Jetson Orin Nano Super (8GB) runs Ollama with CUDA acceleration. 9 models installed, hot-swappable. 8GB unified memory handles up to 8B-parameter models at full speed.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#x1F4A1;</div>
+        <span class="tag tag-green">Blinkt! LED Strip</span>
+        <h3>Physical AI Feedback</h3>
+        <p>8 APA102 LEDs on the GPIO header show cluster state at a glance. Teal scanner when idle, amber during model loading, green on success, red on errors, cyan chase during inference. The AI can control them via MCP tools.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section id="architecture">
+  <div class="container">
+    <h2 class="section-title">Architecture</h2>
+    <p class="section-sub">Two nodes, one LAN, zero cloud. Everything runs locally.</p>
+    <div class="arch-diagram"><span class="blue">clusterclaw</span> (RPi5, 10.1.10.220)              <span class="red">clustercrush</span> (Jetson, 10.1.10.221)
+  <span class="green">Docker Containers:</span>                          <span class="green">Native Services:</span>
+    ThreadWeaver  (chat UI + API)                Ollama (CUDA, 9 models)
+    OpenClaw      (agent framework)              jetson-maxperf (MAXN power)
+    Caddy         (HTTPS reverse proxy)
+    Portal        (nginx, control panel)        <span class="amber">GPU: Orin (8GB unified)</span>
+
+  <span class="green">Systemd Services:</span>                           <span class="cyan">Ollama API:</span>
+    clusterclaw-leds  (LED daemon)                http://clustercrush:11434/v1
+    shutdown-api      (restart/shutdown)          OpenAI-compatible endpoint
+    openclaw-led-bridge (agent LED events)        Firewalled to clusterclaw only
+
+  <span class="purple">MCP Servers (28 tools):</span>
+    leds (5)  system (6)  clustercrush (4)  time (4)  files (5)  built-in (4)
+
+  <span class="cyan">Access:</span>  Portal http://clusterclaw/  |  SSH tunnel for HTTPS apps
+           ssh -L 5174:localhost:5174 -L 18790:localhost:18790 picocluster@clusterclaw</div>
+  </div>
+</section>
+
+<!-- Software Stack -->
+<section id="software">
+  <div class="container">
+    <h2 class="section-title">Software Stack</h2>
+    <p class="section-sub">Three AI interfaces, one unified tool layer.</p>
+
+    <div class="two-col" style="margin-bottom: 4rem;">
+      <div>
+        <span class="tag tag-blue">Chat Interface</span>
+        <h3>ThreadWeaver</h3>
+        <p>A chat-first UI with branching conversations, search, notebooks, and multi-model switching. Supports 5 LLM providers: local (Ollama), Anthropic (Claude), OpenAI (GPT), Google (Gemini), and xAI (Grok).</p>
+        <ul>
+          <li>Branch any conversation at any message</li>
+          <li>Switch models mid-conversation</li>
+          <li>28 MCP tools available to every provider</li>
+          <li>Tools toggle: OFF by default for fast local chat, ON when you need them</li>
+          <li>Vision support with llava:7b and moondream:1.8b</li>
+        </ul>
+      </div>
+      <div>
+        <span class="tag tag-red">Agent Framework</span>
+        <h3>OpenClaw</h3>
+        <p>An autonomous agent that plans, executes tools, browses the web, and reports back. Includes a Canvas dashboard (HTTPS), terminal TUI, and messaging channel integrations.</p>
+        <ul>
+          <li>Goal-oriented autonomy &mdash; give it a task, it figures out the steps</li>
+          <li>Browser automation via CDP relay</li>
+          <li>Telegram, Discord, Slack, WhatsApp, and 15+ more channels</li>
+          <li>LED bridge: purple thinking, cyan tool use, green success, red error</li>
+          <li>HTTPS dashboard via Caddy + SSH tunnel</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <span class="tag tag-purple">State Management</span>
+        <h3>AgentStateGraph</h3>
+        <p>An AI-native versioned state store compiled natively on the Jetson. Git-like branching and speculations for agent state, with intent metadata on every commit. Optional &mdash; connect via <code>pc-asg connect</code>.</p>
+        <ul>
+          <li>19 additional MCP tools (branch, merge, speculate, diff, blame, epochs)</li>
+          <li>SQLite storage, persists in ThreadWeaver sandbox</li>
+          <li>Sealed epochs for tamper-evident audit trails</li>
+          <li>BSL-1.1 licensed, open-core</li>
+        </ul>
+      </div>
+      <div>
+        <span class="tag tag-green">Control Panel</span>
+        <h3>Portal</h3>
+        <p>A web-based control panel at <code>http://clusterclaw/</code> with everything a user needs &mdash; no SSH required for basic operations.</p>
+        <ul>
+          <li>Live status indicators (ThreadWeaver, OpenClaw, Ollama)</li>
+          <li>Cluster restart / shutdown buttons</li>
+          <li>LED color picker, pulse effects, progress slider</li>
+          <li>28 copyable example prompts organized by MCP server</li>
+          <li>20+ expandable FAQ entries</li>
+          <li>SSH tunnel instructions, installed models table, hardware specs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MCP Tools -->
+<section id="tools">
+  <div class="container">
+    <h2 class="section-title">28 <span class="blue">MCP</span> Tools</h2>
+    <p class="section-sub">The LLM can see, act, and control hardware through the Model Context Protocol. Every tool works with every provider &mdash; local or cloud.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">&#x1F4A1;</div>
+        <span class="tag tag-green">5 tools</span>
+        <h3>LEDs</h3>
+        <p>Set colors, flash patterns, progress bars, success/error pulses. The LLM can make the physical LEDs respond to its actions: "Flash red if the CPU is hot."</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#x1F321;&#xFE0F;</div>
+        <span class="tag tag-blue">6 tools</span>
+        <h3>System</h3>
+        <p>CPU temperature, memory, disk, uptime, load, network interfaces. Ask "How hot is clusterclaw?" and get a real sensor reading.</p>
+      </div>
+      <div class="card red-border">
+        <div class="icon">&#x1F9E0;</div>
+        <span class="tag tag-red">4 tools</span>
+        <h3>Clustercrush</h3>
+        <p>List installed Ollama models, check GPU memory, see what's loaded, pull new models. Manage the inference engine from inside the chat.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#x1F552;</div>
+        <span class="tag tag-blue">4 tools</span>
+        <h3>Time</h3>
+        <p>Current time, day of week, countdowns, duration formatting. Gives the LLM temporal awareness it doesn't have from training data.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#x1F4C1;</div>
+        <span class="tag tag-green">5 tools</span>
+        <h3>Files (Sandboxed)</h3>
+        <p>Read, write, list, delete files in a sandboxed directory. The LLM can create reports, save configs, build shopping lists &mdash; but can't escape the sandbox.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#x2699;&#xFE0F;</div>
+        <span class="tag tag-blue">4 tools</span>
+        <h3>Built-in</h3>
+        <p>ThreadWeaver's native file, directory, and command tools. Broader access than the sandboxed files server, scoped to the container.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Models -->
+<section id="models">
+  <div class="container">
+    <h2 class="section-title">9 Installed <span class="red">Models</span></h2>
+    <p class="section-sub">Pre-loaded on the Jetson's NVMe. Hot-swap from the ThreadWeaver settings panel &mdash; no downloads needed.</p>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr><th>Model</th><th>Category</th><th>Size</th><th>Tool Calling</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>llama3.1:8b</code></td><td>General</td><td>4.9 GB</td><td><span style="color:var(--green)">&#x2713; Multi-turn</span></td><td><strong>Default.</strong> Reliable tool chains, quality answers</td></tr>
+          <tr><td><code>llama3.2:3b</code></td><td>General</td><td>2.0 GB</td><td><span style="color:var(--amber)">&#x26A0; 1-2 turns</span></td><td>Fast one-shot questions, no tools needed</td></tr>
+          <tr><td><code>gemma3:4b</code></td><td>General</td><td>3.3 GB</td><td><span style="color:var(--dim)">&mdash;</span></td><td>Chat-only (auto-fallback, no tools)</td></tr>
+          <tr><td><code>phi3.5:3.8b</code></td><td>Reasoning</td><td>2.2 GB</td><td><span style="color:var(--amber)">&#x26A0; Variable</span></td><td>Reasoning tasks, moderate tool use</td></tr>
+          <tr><td><code>deepseek-r1:7b</code></td><td>Reasoning</td><td>4.7 GB</td><td><span style="color:var(--green)">&#x2713; Reliable</span></td><td>Chain-of-thought, shows its work</td></tr>
+          <tr><td><code>qwen2.5:3b</code></td><td>Code</td><td>1.9 GB</td><td><span style="color:var(--amber)">&#x26A0; Variable</span></td><td>Code explanation, debugging</td></tr>
+          <tr><td><code>starcoder2:3b</code></td><td>Code</td><td>1.7 GB</td><td><span style="color:var(--dim)">&mdash;</span></td><td>Code completion (chat-only fallback)</td></tr>
+          <tr><td><code>llava:7b</code></td><td>Vision</td><td>4.7 GB</td><td><span style="color:var(--dim)">&mdash;</span></td><td>Image understanding, visual Q&A</td></tr>
+          <tr><td><code>moondream:1.8b</code></td><td>Vision</td><td>1.7 GB</td><td><span style="color:var(--dim)">&mdash;</span></td><td>Fast image descriptions</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--dim); font-size:0.85rem; margin-top:1.5rem; text-align:center;">
+      Models without tool support automatically fall back to chat-only mode. Add more models with <code>pc-pull &lt;model&gt;</code> on clustercrush.
+      External providers (Claude, GPT-4, Gemini, Grok) support tools natively and handle all 28 MCP tools.
+    </p>
+  </div>
+</section>
+
+<!-- AgentStateGraph -->
+<section id="asg">
+  <div class="container">
+    <h2 class="section-title"><span class="purple">AgentStateGraph</span></h2>
+    <p class="section-sub">An AI-native versioned state store &mdash; compiled natively on the Jetson Orin Nano. Git-like branching for agent state with intent metadata on every commit.</p>
+    <div class="two-col">
+      <div>
+        <h3>19 Additional MCP Tools</h3>
+        <p>Connect AgentStateGraph as an opt-in MCP server and the LLM gets branching, merging, speculations, structured diffs, blame, epochs, and agent sessions.</p>
+        <ul>
+          <li><code>agentstategraph_get</code> / <code>set</code> / <code>delete</code> &mdash; state CRUD with intent metadata</li>
+          <li><code>agentstategraph_branch</code> / <code>merge</code> &mdash; namespace-aware branching</li>
+          <li><code>agentstategraph_speculate</code> &mdash; lightweight what-if branches (O(1) creation)</li>
+          <li><code>agentstategraph_diff</code> / <code>blame</code> / <code>query</code> &mdash; structured history</li>
+          <li><code>agentstategraph_seal_epoch</code> &mdash; tamper-evident audit trails</li>
+        </ul>
+        <p style="margin-top:1rem"><code>pc-asg connect</code> to enable, <code>pc-asg disconnect</code> to remove. State persists in SQLite.</p>
+      </div>
+      <div>
+        <h3>Why It Matters</h3>
+        <p>Traditional databases don't capture <em>why</em> a change was made, who the agent was, what it was trying to accomplish, or how confident it was. AgentStateGraph makes provenance a first-class primitive.</p>
+        <ul>
+          <li>Every commit carries intent category, description, reasoning, and confidence</li>
+          <li>Speculations let agents explore approaches before committing</li>
+          <li>Sealed epochs provide cryptographic proof of what agents did</li>
+          <li>Query by agent, intent, tags, confidence range, date range</li>
+        </ul>
+        <p style="margin-top:1rem">v0.3.5-beta.2 &mdash; <a href="https://github.com/nosqltips/AgentStateGraph" style="color:var(--purple);">github.com/nosqltips/AgentStateGraph</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Privacy & Security -->
+<section id="security">
+  <div class="container">
+    <h2 class="section-title">Privacy &amp; <span class="blue">Security</span></h2>
+    <p class="section-sub">Your data, your hardware, your rules.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">&#x1F512;</div>
+        <h3>Local-First Inference</h3>
+        <p>The <code>local</code> provider runs entirely on your LAN. Model weights on the Jetson's NVMe, conversations on the RPi5's SD card. Nothing leaves your network unless you explicitly switch to an external provider.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#x1F6E1;&#xFE0F;</div>
+        <h3>Localhost-Only Ports</h3>
+        <p>ThreadWeaver (5173, 8000) and OpenClaw (18789) are bound to <code>127.0.0.1</code>. LAN clients must SSH-tunnel to Caddy HTTPS (5174, 18790). The portal (port 80) is the only public-facing web service.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#x1F525;</div>
+        <h3>Firewall + Ollama Isolation</h3>
+        <p>Ollama on clustercrush only accepts connections from clusterclaw's IP. Direct LAN access is blocked by ufw. No authentication because there's no network path to exploit.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#x1F4E6;</div>
+        <h3>Sandboxed File Access</h3>
+        <p>The LLM's file tools are restricted to a Docker-volume sandbox. Path traversal attempts are rejected at the Python level. The model cannot read host files, container internals, or your computer's filesystem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Getting Started -->
+<section id="start">
+  <div class="container">
+    <h2 class="section-title">Getting <span class="red">Started</span></h2>
+    <p class="section-sub">From unboxing to first chat in under 5 minutes.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">1&#xFE0F;&#x20E3;</div>
+        <h3>Plug In &amp; Boot</h3>
+        <p>Connect power to both nodes. The LED strip goes teal (booting), then amber (model loading), then green (ready). Takes about 2 minutes.</p>
+      </div>
+      <div class="card">
+        <div class="icon">2&#xFE0F;&#x20E3;</div>
+        <h3>Add Hostnames</h3>
+        <p>Add to your computer's <code>/etc/hosts</code>:<br>
+        <code>10.1.10.220 clusterclaw</code><br>
+        <code>10.1.10.221 clustercrush</code></p>
+      </div>
+      <div class="card">
+        <div class="icon">3&#xFE0F;&#x20E3;</div>
+        <h3>Open the Portal</h3>
+        <p>Browse to <code>http://clusterclaw/</code> for the control panel. Status, LED control, example prompts, FAQ &mdash; everything is there.</p>
+      </div>
+      <div class="card">
+        <div class="icon">4&#xFE0F;&#x20E3;</div>
+        <h3>Start Chatting</h3>
+        <p>Run the SSH tunnel:<br>
+        <code>ssh -L 5174:localhost:5174 -L 18790:localhost:18790 picocluster@clusterclaw</code><br>
+        Then open <code>https://localhost:5174</code> and start talking to your local LLM.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <h2 class="section-title">Frequently Asked <span class="blue">Questions</span></h2>
+    <p class="section-sub">Highlights from the full <a href="https://github.com/picocluster/PicoCluster-Claw/blob/main/docs/faq.md" style="color:var(--blue-light);">26-question FAQ</a>.</p>
+
+    <details class="faq">
+      <summary>Can external LLMs (Claude, GPT-4) use the local MCP tools?</summary>
+      <div class="answer">Yes, fully. The external LLM sees tool schemas and decides when to call them. ThreadWeaver executes the call locally on clusterclaw. The external model never touches your hardware directly &mdash; it describes what it wants, and your cluster acts as the trusted executor. All 28 tools work with every provider.</div>
+    </details>
+    <details class="faq">
+      <summary>What gets sent to external providers?</summary>
+      <div class="answer">Your prompts, the LLM's replies, tool schemas, and tool call results. NOT sent: your API keys beyond auth, files outside the sandbox, other conversations, raw local inference. For strict privacy, use the <code>local</code> provider &mdash; everything stays on your LAN.</div>
+    </details>
+    <details class="faq">
+      <summary>Why do some models not support tool calling?</summary>
+      <div class="answer">Tool calling requires structured JSON output that not all models were trained for. ThreadWeaver auto-detects this and falls back to chat-only with a clear notice. Models like <code>gemma3:4b</code>, <code>llava:7b</code>, and <code>starcoder2:3b</code> work fine for plain chat and vision &mdash; they just can't invoke MCP tools.</div>
+    </details>
+    <details class="faq">
+      <summary>Why is the default model llama3.1:8b instead of the faster 3b?</summary>
+      <div class="answer"><code>llama3.2:3b</code> handles 1-2 tool calls fine but degrades on multi-turn conversations &mdash; it starts printing tool calls as plain text instead of making real structured calls. <code>llama3.1:8b</code> is slower per reply but reliably chains 3+ tool calls. With tools OFF (the default for local), you can switch to 3b for faster plain chat.</div>
+    </details>
+    <details class="faq">
+      <summary>Can the LLM read files on my computer?</summary>
+      <div class="answer">No. The <code>files</code> MCP server is sandboxed to <code>/tmp/clusterclaw-sandbox</code> inside the ThreadWeaver container. Path traversal is rejected at the Python level. Your computer's filesystem is never exposed.</div>
+    </details>
+    <details class="faq">
+      <summary>What do the LED colors mean?</summary>
+      <div class="answer"><strong>Teal scanner:</strong> idle. <strong>Amber:</strong> model loading. <strong>Green burst:</strong> success. <strong>Red flash:</strong> error. <strong>Purple pulse:</strong> agent thinking. <strong>Cyan chase:</strong> active inference. <strong>Blue fade:</strong> shutting down. The LLM can also control them directly: "Make the LEDs purple."</div>
+    </details>
+    <details class="faq">
+      <summary>How do I add more models?</summary>
+      <div class="answer">SSH to clustercrush and run <code>pc-pull &lt;model-name&gt;</code>. Browse <a href="https://ollama.com/library" style="color:var(--blue-light)">ollama.com/library</a> for tags. Or ask the LLM: "Pull the qwen3 model from Ollama."</div>
+    </details>
+    <details class="faq">
+      <summary>What is AgentStateGraph?</summary>
+      <div class="answer">A Rust-native versioned state store for AI agents. Think "git for agent state" with intent metadata, speculations (lightweight what-if branches), and sealed epochs for audit trails. It's compiled on the Jetson and available as an opt-in MCP server with 19 tools via <code>pc-asg connect</code>.</div>
+    </details>
+
+    <p style="text-align:center; margin-top:2rem;">
+      <a href="https://github.com/picocluster/PicoCluster-Claw/blob/main/docs/faq.md" class="btn btn-outline">Full FAQ (26 questions) &rarr;</a>
+    </p>
+  </div>
+</section>
+
+<!-- Hardware Specs -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Hardware <span class="red">Specs</span></h2>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr><th></th><th>clusterclaw</th><th>clustercrush</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Board</strong></td><td>Raspberry Pi 5</td><td>NVIDIA Jetson Orin Nano Super</td></tr>
+          <tr><td><strong>CPU</strong></td><td>Cortex-A76, 4-core, 2.4 GHz</td><td>Cortex-A78AE, 6-core, 1.7 GHz</td></tr>
+          <tr><td><strong>RAM</strong></td><td>8 GB / 16 GB LPDDR4X</td><td>8 GB LPDDR5 (unified with GPU)</td></tr>
+          <tr><td><strong>GPU</strong></td><td>VideoCore VII (not used for AI)</td><td>1024-core NVIDIA Ampere, 67 TOPS</td></tr>
+          <tr><td><strong>Storage</strong></td><td>64+ GB microSD</td><td>128 GB NVMe M.2</td></tr>
+          <tr><td><strong>Network</strong></td><td>Gigabit Ethernet</td><td>Gigabit Ethernet</td></tr>
+          <tr><td><strong>Role</strong></td><td>Orchestrator, web UIs, MCP tools, LEDs</td><td>GPU inference (Ollama + CUDA)</td></tr>
+          <tr><td><strong>Power</strong></td><td>~7W typical</td><td>~13W typical (MAXN mode)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--dim); font-size:0.85rem; margin-top:1.5rem; text-align:center;">
+      Total power: ~20W typical. Your own private AI for under $2/month in electricity.
+    </p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="links">
+    <a href="https://github.com/picocluster/PicoCluster-Claw">GitHub</a>
+    <a href="https://picocluster.com">PicoCluster</a>
+    <a href="https://github.com/nosqltips/ThreadWeaver">ThreadWeaver</a>
+    <a href="https://github.com/openclaw/openclaw">OpenClaw</a>
+    <a href="https://github.com/nosqltips/AgentStateGraph">AgentStateGraph</a>
+    <a href="https://ollama.com">Ollama</a>
+  </div>
+  <p>
+    <span style="color:var(--blue);">Pico</span>Cluster <span style="color:var(--red);">Claw</span>
+    &mdash; built by <a href="https://picocluster.com">PicoCluster LLC</a>
+  </p>
+</footer>
+
+</body>
+</html>
