@@ -1,0 +1,45 @@
+#!/bin/bash
+# pc-asg — Connect/disconnect AgentStateGraph MCP server to ThreadWeaver
+# Usage:
+#   pc-asg connect   # Add 19 AgentStateGraph tools to ThreadWeaver
+#   pc-asg disconnect # Remove AgentStateGraph tools
+#   pc-asg status    # Check if connected
+set -euo pipefail
+
+TW_API="http://127.0.0.1:8000/api"
+
+case "${1:-status}" in
+  connect)
+    echo "Connecting AgentStateGraph MCP server..."
+    RESULT=$(curl -sf -X POST "$TW_API/mcp/connect" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"agentstategraph","command":"/opt/mcp/servers/agentstategraph-mcp","args":["--storage","sqlite","--path","/tmp/picoclcaw-sandbox/agentstategraph.db"]}' 2>&1)
+    if echo "$RESULT" | grep -q '"tools"'; then
+      TOOLS=$(echo "$RESULT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tools',0))" 2>/dev/null)
+      echo "Connected: ${TOOLS} AgentStateGraph tools available"
+      echo ""
+      echo "Try: 'Create a branch called explore/test and write some data to it'"
+    else
+      echo "Failed to connect: $RESULT"
+    fi
+    ;;
+  disconnect)
+    echo "Disconnecting AgentStateGraph..."
+    curl -sf -X DELETE "$TW_API/mcp/agentstategraph" > /dev/null 2>&1 \
+      && echo "Disconnected" \
+      || echo "Was not connected"
+    ;;
+  status)
+    SERVERS=$(curl -sf "$TW_API/mcp/servers" 2>/dev/null)
+    if echo "$SERVERS" | grep -q "agentstategraph"; then
+      TOOLS=$(echo "$SERVERS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('agentstategraph',{}).get('tools',0))" 2>/dev/null)
+      echo "AgentStateGraph: connected (${TOOLS} tools)"
+    else
+      echo "AgentStateGraph: not connected"
+      echo "  Run: pc-asg connect"
+    fi
+    ;;
+  *)
+    sed -n '2,6p' "$0"
+    ;;
+esac
