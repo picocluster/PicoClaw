@@ -1,14 +1,14 @@
 #!/bin/bash
-# pc-status — Show PicoClaw service status
+# pc-status — Show PicoCluster Claw service status
 set -euo pipefail
 
-echo "=== PicoClaw Status ==="
+echo "=== PicoCluster Claw Status ==="
 echo ""
 echo "Docker containers:"
 sudo docker ps --format "  {{.Names}}: {{.Status}}" 2>/dev/null
 echo ""
 echo "Systemd services:"
-for svc in picoclaw-leds shutdown-api openclaw-led-bridge; do
+for svc in picocluster-claw-leds shutdown-api openclaw-led-bridge; do
   state=$(systemctl is-active "$svc" 2>/dev/null || true)
   echo "  $svc: ${state:-unknown}"
 done

@@ -1,4 +1,4 @@
 #!/bin/bash
 # pc-update-openclaw — Rebuild the OpenClaw container from latest
 set -euo pipefail
-sudo bash /opt/picoclcaw/scripts/setup/update-picoclaw.sh openclaw
+sudo bash /opt/picocluster-claw/scripts/setup/update-picocluster-claw.sh openclaw

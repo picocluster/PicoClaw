@@ -1,4 +1,4 @@
 #!/bin/bash
 # pc-update-threadweaver — Check for and apply ThreadWeaver updates
 set -euo pipefail
-sudo bash /opt/picoclcaw/scripts/setup/update-threadweaver.sh "$@"
+sudo bash /opt/picocluster-claw/scripts/setup/update-threadweaver.sh "$@"

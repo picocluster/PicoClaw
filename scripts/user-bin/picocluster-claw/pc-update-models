@@ -7,4 +7,4 @@ set -euo pipefail
 CRUSH_HOST="${CRUSH_HOST:-picocluster@10.1.10.221}"
 
 echo "Running model update on picocrush..."
-ssh -o ConnectTimeout=5 "$CRUSH_HOST" "sudo bash /opt/picoclcaw/scripts/setup/update-picocrush.sh $*"
+ssh -o ConnectTimeout=5 "$CRUSH_HOST" "sudo bash /opt/picocluster-claw/scripts/setup/update-picocrush.sh $*"

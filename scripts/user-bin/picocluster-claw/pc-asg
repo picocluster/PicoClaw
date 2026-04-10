@@ -13,7 +13,7 @@ case "${1:-status}" in
     echo "Connecting AgentStateGraph MCP server..."
     RESULT=$(curl -sf -X POST "$TW_API/mcp/connect" \
       -H "Content-Type: application/json" \
-      -d '{"name":"agentstategraph","command":"/opt/mcp/servers/agentstategraph-mcp","args":["--storage","sqlite","--path","/tmp/picoclcaw-sandbox/agentstategraph.db"]}' 2>&1)
+      -d '{"name":"agentstategraph","command":"/opt/mcp/servers/agentstategraph-mcp","args":["--storage","sqlite","--path","/tmp/picocluster-claw-sandbox/agentstategraph.db"]}' 2>&1)
     if echo "$RESULT" | grep -q '"tools"'; then
       TOOLS=$(echo "$RESULT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tools',0))" 2>/dev/null)
       echo "Connected: ${TOOLS} AgentStateGraph tools available"

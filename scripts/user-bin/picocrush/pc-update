@@ -1,4 +1,4 @@
 #!/bin/bash
 # pc-update — Update Ollama and pull default models
 set -euo pipefail
-sudo bash /opt/picoclcaw/scripts/setup/update-picocrush.sh "$@"
+sudo bash /opt/picocluster-claw/scripts/setup/update-picocrush.sh "$@"
