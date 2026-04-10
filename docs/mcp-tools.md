@@ -205,14 +205,18 @@ Or, if you've set up the SSH tunnel, you can hit the API through the Caddy HTTPS
 
 Tool use quality varies by model:
 
-| Model | Tool Use | Notes |
-|-------|----------|-------|
-| llama3.1:8b | ⭐⭐⭐⭐ | Reliable, slower |
-| deepseek-r1:7b | ⭐⭐⭐⭐ | Good reasoning about when to use tools |
-| llama3.2:3b | ⭐⭐⭐ | Fast but misses tools sometimes |
-| phi3.5:3.8b | ⭐⭐⭐ | Decent tool use |
-| qwen2.5:3b | ⭐⭐⭐ | Better at code than tools |
-| starcoder2:3b | ⭐⭐ | Code model, not great at tool schemas |
-| llava:7b | ⭐⭐ | Vision model, tool use is secondary |
+| Model | Tool Use | Multi-turn | Notes |
+|-------|----------|------------|-------|
+| llama3.1:8b | ⭐⭐⭐⭐ | ✅ reliable | **PicoClaw default.** Chains 3+ tool calls cleanly |
+| deepseek-r1:7b | ⭐⭐⭐⭐ | ✅ reliable | Good reasoning about when to use tools |
+| phi3.5:3.8b | ⭐⭐⭐ | ⚠️ variable | Decent on single/first-turn tool use |
+| qwen2.5:3b | ⭐⭐⭐ | ⚠️ variable | Better at code than tools |
+| llama3.2:3b | ⭐⭐⭐ | ❌ degrades | First 1-2 calls work, then hallucinates tool calls as text |
+| starcoder2:3b | ❌ no tools | — | Code completion model; ThreadWeaver falls back to chat-only |
+| gemma3:4b | ❌ no tools | — | Chat model; ThreadWeaver falls back to chat-only |
+| llava:7b | ❌ no tools | — | Vision model; use for image understanding |
+| moondream:1.8b | ❌ no tools | — | Tiny vision model; use for fast image description |
 
-**Recommendation:** Use `llama3.1:8b` as the default for tool-heavy conversations.
+**The multi-turn degradation pattern** for `llama3.2:3b`: by the third or fourth request in a conversation, the model starts printing tool calls as text in the content body instead of emitting real structured tool calls. ThreadWeaver can't distinguish the hallucinated call from a real one, and the model often fabricates plausible results immediately after — so replies read correctly but nothing actually happened. Check the LEDs or the sandbox if you're unsure.
+
+**Recommendation:** Use `llama3.1:8b` (the default) for any tool-heavy conversation. Switch to `llama3.2:3b` only for quick one-shot questions where you don't need tools. For vision tasks, use `llava:7b` or `moondream:1.8b` and let ThreadWeaver's auto-fallback handle the tool schemas.

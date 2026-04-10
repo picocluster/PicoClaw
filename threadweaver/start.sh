@@ -3,12 +3,12 @@ set -e
 
 # Write .env from environment variables. Defaults match the Dockerfile ENV
 # values; docker-compose overrides these via the `environment:` section.
-# LOCAL_MODEL must be an Ollama tag that supports tool calling — otherwise
-# ThreadWeaver's chat requests get 400 "does not support tools" from Ollama.
+# LOCAL_MODEL must be an Ollama tag that supports tool calling. llama3.1:8b
+# chains tool calls reliably across multi-turn conversations.
 cat > /app/backend/.env <<EOF
 LLM_PROVIDER=${LLM_PROVIDER:-local}
 LOCAL_BASE_URL=${LOCAL_BASE_URL:-http://picocrush:11434/v1}
-LOCAL_MODEL=${LOCAL_MODEL:-llama3.2:3b}
+LOCAL_MODEL=${LOCAL_MODEL:-llama3.1:8b}
 EOF
 
 # Start backend using venv

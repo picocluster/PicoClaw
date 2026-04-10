@@ -576,13 +576,23 @@
       <details class="faq">
         <summary>Which model should I use for what?</summary>
         <div class="answer">
-          <p><strong>General chat:</strong> <code>llama3.1:8b</code> — best quality/speed balance<br>
-          <strong>Fast one-shots:</strong> <code>llama3.2:3b</code> — starts instantly<br>
+          <p><strong>General chat + tools (default):</strong> <code>llama3.1:8b</code> — reliable multi-turn tool use<br>
+          <strong>Fast one-shots, no tools:</strong> <code>llama3.2:3b</code> — 3× faster but degrades on tool chains<br>
           <strong>Reasoning/math:</strong> <code>deepseek-r1:7b</code> — shows its work<br>
           <strong>Code:</strong> <code>qwen2.5:3b</code> or <code>starcoder2:3b</code><br>
-          <strong>Images:</strong> <code>llava:7b</code> or <code>moondream:1.8b</code><br>
-          <strong>Tool-heavy workflows:</strong> <code>llama3.1:8b</code> (most reliable of the local set)</p>
-          <p>Switch models from the ThreadWeaver settings panel (top right).</p>
+          <strong>Images:</strong> <code>llava:7b</code> or <code>moondream:1.8b</code></p>
+          <p>Switch models from the ThreadWeaver settings panel (top right). See FAQ below for the multi-turn tool-use limitation of smaller models.</p>
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary>Why does llama3.2:3b stop using tools after a few messages?</summary>
+        <div class="answer">
+          <p>Small models (3B parameters) handle 1-2 tool calls in a conversation cleanly, but after the third or fourth they start <strong>hallucinating tool calls as plain text</strong> instead of making real ones. You'll see something like:</p>
+          <p><code>```json { "name": "system__get_temperature", "parameters": {...} } ```</code></p>
+          <p>...printed in the message body, followed by a hallucinated "result" that didn't actually happen. The LEDs don't change, the file doesn't get written, the temperature reading is made up.</p>
+          <p><strong>How to spot it:</strong> real tool calls show up as <strong>🔧 Tool call:</strong> markers. If you see a <code>```json</code> block in the plain text without that marker, the model is faking it.</p>
+          <p><strong>Fix:</strong> switch to <code>llama3.1:8b</code> in Settings → Local → Model. It's slower per reply but it won't fake tool calls. This is why llama3.1:8b is the Beta default.</p>
         </div>
       </details>
 

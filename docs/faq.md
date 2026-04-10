@@ -123,12 +123,14 @@ Quick guide:
 
 Switch models from the ThreadWeaver settings panel (top right). A good rule of thumb:
 
-- **Most conversations** — `llama3.1:8b`
-- **Quick one-shot questions** — `llama3.2:3b`
+- **Most conversations** — `llama3.1:8b` ← **default local model**
+- **Quick one-shot questions** — `llama3.2:3b` (faster, but see caveat below)
 - **"Think step by step" problems** — `deepseek-r1:7b`
 - **Code generation or debugging** — `qwen2.5:3b` for explanations, `starcoder2:3b` for fill-in
 - **Image understanding** — `llava:7b`
 - **Tool-heavy workflows** — `llama3.1:8b` (it uses tools most reliably among the local set)
+
+**Why `llama3.1:8b` is the default**: it's the only local model that reliably chains **multi-turn** tool calls. Smaller models like `llama3.2:3b` handle 1-2 tool calls fine, but after that they start "imitating" the tool-call format as text instead of emitting real structured tool calls (see FAQ #17). If you're only sending one-shot questions or don't need tools, `llama3.2:3b` is ~3x faster and fine. For anything with tools, stay on 8b.
 
 For absolute best tool use, switch the provider to an external LLM (Claude, GPT-4, Gemini) — see question 9.
 
@@ -298,13 +300,32 @@ Tool use is a form of structured output — the model has to produce valid JSON 
 
 Expected behavior on PicoClaw:
 
-- `llama3.1:8b` and `deepseek-r1:7b` — reliable, will chain 2-3 tool calls
-- `llama3.2:3b` and `phi3.5:3.8b` — usually get simple tool use right, occasionally miss
-- `qwen2.5:3b` — decent at tools, excellent at code
-- `starcoder2:3b` — trained for code completion, not tool use
-- `llava:7b` / `moondream:1.8b` — vision models, basic tool use only
+- `llama3.1:8b` ← **default** — reliable multi-turn tool use, chains 3+ calls cleanly
+- `deepseek-r1:7b` — good tool use with visible reasoning, slower
+- `phi3.5:3.8b`, `qwen2.5:3b` — decent on simple/1-shot tool use, variable on multi-turn
+- `llama3.2:3b` — fast, handles 1-2 tool calls, **degrades after that** (see below)
+- `starcoder2:3b` — trained for code completion, no tool support
+- `gemma3:4b`, `llava:7b`, `moondream:1.8b` — no tool support (ThreadWeaver auto-falls back to chat-only)
 
-For tool-heavy tasks, either use `llama3.1:8b` or switch to an external provider.
+**The multi-turn degradation pattern** (seen specifically with `llama3.2:3b` and other small models):
+
+1. First 1-2 tool calls work perfectly — model emits structured `tool_calls` in the response
+2. By the third or fourth request in the same conversation, the model starts **printing tool calls as text** in the content field instead of emitting them as structured output:
+   ```
+   ```json
+   {"name": "system__get_temperature", "parameters": {...}}
+   ```
+   Result: `The current CPU temperature is not available.`
+   ```
+3. Because it's text and not a real tool call, ThreadWeaver never executes the tool — and worse, the model often **hallucinates a plausible-looking result** immediately after, so the reply reads like a real answer when nothing actually happened.
+
+This is a known weakness of 3B-parameter models under long tool-use contexts. It's not a ThreadWeaver bug or an Ollama bug — the model's learned "mimicry" competes with its structured-output discipline once the context gets crowded with tool call history.
+
+**How to recognize it**: if the response contains ```` ```json ```` blocks in the plain text instead of the expected 🔧 **Tool call:** markers, the model is hallucinating. The physical side-effects (LEDs, file writes) won't happen either — check the LEDs or the sandbox to confirm.
+
+**Fix**: switch to `llama3.1:8b` for that conversation (Settings → Local → Model). It's slower per-reply but it won't hallucinate tool calls.
+
+For tool-heavy tasks, either use `llama3.1:8b` or switch to an external provider (Claude/GPT-4/Gemini — see FAQ #9).
 
 ---
 

@@ -10,9 +10,12 @@ set -euo pipefail
 CRUSH_IP="${1:-10.1.10.221}"
 # Ollama tag (not a llamafile .gguf filename). Must be a model that supports
 # tool calling since ThreadWeaver sends MCP tool schemas on every request.
-# Known-good local tool-use models: llama3.2:3b, llama3.1:8b, phi3.5:3.8b,
-# qwen2.5:3b, deepseek-r1:7b. Gemma3 and the vision models do NOT support tools.
-DEFAULT_MODEL="${2:-llama3.2:3b}"
+# llama3.1:8b is the default because it reliably chains tool calls across
+# multi-turn conversations; the smaller llama3.2:3b works for 1-2 calls but
+# degrades on longer tool-heavy threads. Other tool-capable models:
+# phi3.5:3.8b, qwen2.5:3b, deepseek-r1:7b. Gemma3 and vision models do NOT
+# support tool calling (ThreadWeaver auto-falls back to chat-only for those).
+DEFAULT_MODEL="${2:-llama3.1:8b}"
 OPENCLAW_TOKEN="${3:-picocluster-token}"
 INSTALL_DIR="/opt/picoclcaw"
 LED_DIR="$INSTALL_DIR/leds"
