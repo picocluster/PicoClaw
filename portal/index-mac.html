@@ -113,6 +113,20 @@
     .example .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
     .example .copy-btn.copied { background: var(--green); border-color: var(--green); color: #000; }
 
+    /* Virtual LED strip */
+    .virtual-leds {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.2rem; margin-bottom: 2rem; text-align: center;
+    }
+    .virtual-leds .label { font-size: 0.75rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.6rem; }
+    .led-strip { display: flex; gap: 8px; justify-content: center; margin-bottom: 0.6rem; }
+    .led-strip .led {
+      width: 18px; height: 18px; border-radius: 50%; background: #333;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .led-strip .led.on { box-shadow: 0 0 10px currentColor; }
+    .virtual-leds .mode-text { font-size: 0.8rem; color: var(--dim); }
+
     .footer { text-align: center; color: var(--dim); font-size: 0.8rem; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
     .footer a { color: var(--accent); text-decoration: none; }
   </style>
@@ -139,6 +153,15 @@
         <div class="label">Ollama</div>
         <div class="value"><span id="dot-ol" class="dot gray"></span> <span id="status-ol">checking...</span></div>
       </div>
+    </div>
+
+    <div class="virtual-leds">
+      <div class="label">Virtual LED Status</div>
+      <div class="led-strip" id="led-strip">
+        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+      </div>
+      <div class="mode-text" id="led-mode">idle</div>
     </div>
 
     <div class="cards">
@@ -377,6 +400,65 @@
       }
     }
     loadModels();
+
+    // Virtual LED strip — polls the virtual daemon's GET /status
+    const LED_COLORS = {
+      red: '#f87171', green: '#4ade80', blue: '#4a9eff', amber: '#fbbf24',
+      orange: '#fb923c', cyan: '#22d3ee', purple: '#a78bfa', white: '#e2e8f0', off: '#333'
+    };
+
+    async function updateLEDs() {
+      const leds = document.querySelectorAll('#led-strip .led');
+      const modeEl = document.getElementById('led-mode');
+      try {
+        const resp = await fetch('http://localhost:7777/status', { signal: AbortSignal.timeout(2000) });
+        const state = await resp.json();
+        const color = LED_COLORS[state.color] || '#333';
+        const mode = state.mode;
+
+        if (mode === 'idle') {
+          // Teal scanner simulation
+          const t = Date.now() / 400;
+          leds.forEach((led, i) => {
+            const dist = Math.abs((t % 8) - i);
+            const brightness = Math.max(0, 1 - dist * 0.35);
+            const r = Math.round(0 * brightness);
+            const g = Math.round(200 * brightness);
+            const b = Math.round(200 * brightness);
+            led.style.background = brightness > 0.1 ? `rgb(${r},${g},${b})` : '#222';
+            led.style.boxShadow = brightness > 0.5 ? `0 0 8px rgb(${r},${g},${b})` : 'none';
+          });
+          modeEl.textContent = 'idle — scanner';
+        } else if (mode === 'status' || mode === 'flash') {
+          leds.forEach(led => { led.style.background = color; led.style.boxShadow = `0 0 10px ${color}`; });
+          const remaining = Math.round(state.remaining);
+          modeEl.textContent = `${mode}: ${state.color}${remaining > 0 ? ` (${remaining}s)` : ''}`;
+        } else if (mode === 'progress') {
+          const filled = Math.round(state.percent / 100 * 8);
+          leds.forEach((led, i) => {
+            if (i < filled) { led.style.background = color; led.style.boxShadow = `0 0 8px ${color}`; }
+            else { led.style.background = '#222'; led.style.boxShadow = 'none'; }
+          });
+          modeEl.textContent = `progress: ${state.percent}%`;
+        } else if (mode === 'pulse_success') {
+          const pulse = Math.sin(Date.now() / 200) * 0.5 + 0.5;
+          const g = Math.round(255 * pulse);
+          leds.forEach(led => { led.style.background = `rgb(0,${g},0)`; led.style.boxShadow = `0 0 ${8*pulse}px rgb(0,${g},0)`; });
+          modeEl.textContent = 'success pulse';
+        } else if (mode === 'pulse_error') {
+          const pulse = Math.sin(Date.now() / 150) * 0.5 + 0.5;
+          const r = Math.round(255 * pulse);
+          leds.forEach(led => { led.style.background = `rgb(${r},0,0)`; led.style.boxShadow = `0 0 ${8*pulse}px rgb(${r},0,0)`; });
+          modeEl.textContent = 'error pulse';
+        }
+      } catch {
+        leds.forEach(led => { led.style.background = '#333'; led.style.boxShadow = 'none'; });
+        modeEl.textContent = 'virtual LED daemon offline';
+      }
+    }
+
+    // Fast poll for smooth animation when active, slower when idle
+    setInterval(updateLEDs, 100);
 
     // Copy-to-clipboard
     function copyPrompt(btn) {
