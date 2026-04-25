@@ -180,6 +180,12 @@ DEFAULT_MODEL=${DEFAULT_MODEL}
 OPENCLAW_TOKEN=${OPENCLAW_TOKEN}
 EOF
 
+# User-accessible file storage for OpenClaw and ThreadWeaver
+FILES_DIR="/home/${USER}/claw-files"
+mkdir -p "$FILES_DIR/openclaw" "$FILES_DIR/threadweaver"
+chown -R "${USER}:${USER}" "$FILES_DIR"
+log "File storage: $FILES_DIR (openclaw/, threadweaver/)"
+
 log "Building containers (this takes a few minutes on first run)..."
 docker compose build 2>&1 | tail -10
 docker compose up -d 2>&1

@@ -7,6 +7,10 @@
 # First-time setup:
 #   sudo bash scripts/generate-pki.sh   # create CA + TLS certs
 #   docker compose up -d
+#
+# User files are written to /home/picocluster/claw-files/ on the host:
+#   openclaw/   — downloads, screenshots, agent-generated files
+#   threadweaver/ — sandbox workspace files (shared with TW MCP tools)
 
 services:
   threadweaver:
@@ -28,7 +32,7 @@ services:
     volumes:
       - ./leds/mcp_server.py:/opt/mcp/led_server.py:ro
       - ./mcp:/opt/mcp/servers:ro
-      - clusterclaw-sandbox:/tmp/clusterclaw-sandbox
+      - /home/picocluster/claw-files/threadweaver:/workspace
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://127.0.0.1:8000/api/settings"]
       interval: 30s
@@ -50,6 +54,7 @@ services:
       - "clustercrush:${CRUSH_IP:-10.1.10.221}"
     volumes:
       - openclaw-data:/home/openclaw/.openclaw
+      - /home/picocluster/claw-files/openclaw:/home/openclaw/files
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://127.0.0.1:18789/__openclaw__/health"]
       interval: 30s
@@ -84,4 +89,3 @@ volumes:
   openclaw-data:
   caddy-data:
   caddy-config:
-  clusterclaw-sandbox:
