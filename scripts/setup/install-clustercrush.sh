@@ -263,7 +263,7 @@ log "Running warm-up now..."
 # 5. Power mode
 # ============================================================
 log "--- Step 5/6: Power mode ---"
-nvpmodel -m 0 2>/dev/null || true
+nvpmodel -m 2 2>/dev/null || true
 jetson_clocks 2>/dev/null || true
 
 if [[ ! -f /etc/systemd/system/jetson-maxperf.service ]]; then
@@ -274,7 +274,7 @@ After=multi-user.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/sbin/nvpmodel -m 0
+ExecStart=/usr/sbin/nvpmodel -m 2
 ExecStartPost=/usr/bin/jetson_clocks
 RemainAfterExit=yes
 
