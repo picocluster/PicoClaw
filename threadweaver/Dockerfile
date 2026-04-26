@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y git python3 python3-pip python3-venv cu
 # ThreadWeaver source — CI: pre-populated tw-src/ from actions/checkout (no credentials needed)
 # Local dev: tw-src/ is empty, falls back to git clone (requires network access to private repo)
 COPY tw-src/ /tmp/tw-src/
-RUN if [ -f "/tmp/tw-src/package.json" ]; then \
+RUN if [ -d "/tmp/tw-src/frontend" ]; then \
       cp -rT /tmp/tw-src /app; \
     else \
       git clone --depth 1 https://github.com/nosqltips/ThreadWeaver.git /app; \
