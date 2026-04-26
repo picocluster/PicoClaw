@@ -142,11 +142,12 @@ fi
 # ============================================================
 log "--- Step 3/6: Avahi mDNS ---"
 
-# Install avahi if golden image doesn't have it (older images removed it)
+# Install avahi + Python D-Bus bindings for CNAME alias publishing
 if ! command -v avahi-daemon &>/dev/null; then
-  apt-get install -y avahi-daemon avahi-utils libnss-mdns
+  apt-get install -y avahi-daemon avahi-utils libnss-mdns python3-avahi python3-dbus
   log "Avahi installed"
 else
+  apt-get install -y python3-avahi python3-dbus 2>/dev/null || true
   log "Avahi already installed"
 fi
 
@@ -158,17 +159,38 @@ if ! grep -q "^allow-interfaces" /etc/avahi/avahi-daemon.conf 2>/dev/null; then
   sed -i "s/^\[server\]/[server]\nallow-interfaces=${ETH_IF}/" /etc/avahi/avahi-daemon.conf
 fi
 
-# Announce claw.local + threadweaver.local as aliases for this machine's IP
-CLAW_IP=$(ip -4 addr show "${ETH_IF}" | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -1)
-cat > /etc/avahi/hosts <<AVAHI
-# PicoClaw mDNS aliases — managed by install-clusterclaw.sh
-${CLAW_IP}  claw.local
-${CLAW_IP}  threadweaver.local
-AVAHI
+# Clear /etc/avahi/hosts — CNAME aliases are published via the Python service
+# below. A-records from /etc/avahi/hosts work on Linux but macOS Bonjour ignores
+# them; CNAMEs pointing to the native hostname are followed on all platforms.
+> /etc/avahi/hosts
 
 systemctl enable avahi-daemon
 systemctl restart avahi-daemon
-log "mDNS: clusterclaw.local, claw.local, threadweaver.local → ${CLAW_IP}"
+
+# Install CNAME alias publisher
+cp "$INSTALL_DIR/scripts/mdns-aliases.py" /usr/local/bin/picocluster-mdns-aliases
+chmod +x /usr/local/bin/picocluster-mdns-aliases
+
+cat > /etc/systemd/system/picocluster-mdns-aliases.service <<'UNIT'
+[Unit]
+Description=PicoClaw mDNS CNAME aliases (claw.local, threadweaver.local)
+After=avahi-daemon.service
+Requires=avahi-daemon.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/bin/picocluster-mdns-aliases claw.local threadweaver.local
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable picocluster-mdns-aliases
+systemctl restart picocluster-mdns-aliases
+log "mDNS: claw.local, threadweaver.local → CNAME → clusterclaw.local (works on macOS)"
 
 # ============================================================
 # 4. PKI — Local CA + TLS certs for claw.local, threadweaver.local

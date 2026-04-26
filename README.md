@@ -96,16 +96,9 @@ The cluster uses **static IPs** and **mDNS** (`.local` hostnames) for LAN access
 
 ### Option A — LAN (default)
 
-`claw.local` and `threadweaver.local` resolve via Avahi/mDNS on the same subnet. HTTPS is secured with a pre-generated local CA (no browser warnings after one CA cert install per device).
+`claw.local` and `threadweaver.local` resolve via Avahi mDNS on the same subnet — no client config needed on any OS. HTTPS is secured with a pre-generated local CA (no browser warnings after one CA cert install per device).
 
-Works on most home/office networks. **macOS note:** if `.local` names don't resolve (Bonjour sometimes ignores third-party mDNS aliases), add these lines to your Mac's `/etc/hosts`:
-
-```
-10.1.10.220  clusterclaw.local claw.local threadweaver.local
-10.1.10.221  clustercrush.local
-```
-
-If mDNS is blocked entirely, use the SSH tunnel fallback below.
+If mDNS is blocked on your network, use the SSH tunnel fallback below.
 
 ### Option B — Reconfigure for a different network
 
