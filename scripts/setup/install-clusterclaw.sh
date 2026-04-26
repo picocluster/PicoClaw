@@ -152,12 +152,14 @@ else
 fi
 
 # Restrict Avahi to the physical LAN interface — prevents Docker bridge interfaces
-# from confusing mDNS announcements and causing macOS to miss them
+# from confusing mDNS announcements and causing macOS to miss them.
+# Disable IPv6 — churn from SLAAC address changes triggers hostname conflicts.
 ETH_IF=$(ip -o link show | awk -F': ' '/^[0-9]+: (eth|en)[0-9]/{print $2; exit}')
 ETH_IF=${ETH_IF:-eth0}
 if ! grep -q "^allow-interfaces" /etc/avahi/avahi-daemon.conf 2>/dev/null; then
   sed -i "s/^\[server\]/[server]\nallow-interfaces=${ETH_IF}/" /etc/avahi/avahi-daemon.conf
 fi
+sed -i 's/^use-ipv6=yes/use-ipv6=no/' /etc/avahi/avahi-daemon.conf
 
 # Clear /etc/avahi/hosts — CNAME aliases are published via the Python service
 # below. A-records from /etc/avahi/hosts work on Linux but macOS Bonjour ignores
