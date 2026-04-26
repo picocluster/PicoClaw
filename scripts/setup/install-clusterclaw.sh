@@ -150,8 +150,16 @@ else
   log "Avahi already installed"
 fi
 
+# Restrict Avahi to the physical LAN interface — prevents Docker bridge interfaces
+# from confusing mDNS announcements and causing macOS to miss them
+ETH_IF=$(ip -o link show | awk -F': ' '/^[0-9]+: (eth|en)[0-9]/{print $2; exit}')
+ETH_IF=${ETH_IF:-eth0}
+if ! grep -q "^allow-interfaces" /etc/avahi/avahi-daemon.conf 2>/dev/null; then
+  sed -i "s/^\[server\]/[server]\nallow-interfaces=${ETH_IF}/" /etc/avahi/avahi-daemon.conf
+fi
+
 # Announce claw.local + threadweaver.local as aliases for this machine's IP
-CLAW_IP=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '^127\.' | head -1)
+CLAW_IP=$(ip -4 addr show "${ETH_IF}" | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -1)
 cat > /etc/avahi/hosts <<AVAHI
 # PicoClaw mDNS aliases — managed by install-clusterclaw.sh
 ${CLAW_IP}  claw.local
@@ -227,6 +235,7 @@ fi
 # Firewall
 # ============================================================
 log "--- Firewall ---"
+ufw allow 5353/udp comment "mDNS (Avahi)"                          2>/dev/null || true
 ufw allow 80/tcp   comment "PicoClaw portal + CA cert download"  2>/dev/null || true
 ufw allow 443/tcp  comment "PicoClaw HTTPS (claw.local, threadweaver.local)" 2>/dev/null || true
 ufw allow 7777/tcp comment "LED API"                              2>/dev/null || true
