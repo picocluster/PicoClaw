@@ -14,6 +14,7 @@
 
 services:
   threadweaver:
+    image: ghcr.io/nosqltips/threadweaver:latest
     build: ./threadweaver
     container_name: threadweaver
     restart: always

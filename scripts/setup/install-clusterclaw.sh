@@ -196,8 +196,9 @@ for cert in ca.crt claw.local.crt claw.local.key threadweaver.local.crt threadwe
   fi
 done
 
-log "Building containers (this takes a few minutes on first run)..."
-docker compose build 2>&1 | tail -10
+log "Pulling pre-built images and building local containers..."
+docker compose pull threadweaver 2>&1 | tail -5
+docker compose build openclaw portal 2>&1 | tail -10
 docker compose up -d 2>&1
 log "Containers started"
 

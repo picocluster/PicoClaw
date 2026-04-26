@@ -3,8 +3,14 @@ FROM node:24-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y git python3 python3-pip python3-venv curl && rm -rf /var/lib/apt/lists/*
 
-# Clone ThreadWeaver
-RUN git clone --depth 1 https://github.com/nosqltips/ThreadWeaver.git .
+# ThreadWeaver source — CI: pre-populated tw-src/ from actions/checkout (no credentials needed)
+# Local dev: tw-src/ is empty, falls back to git clone (requires network access to private repo)
+COPY tw-src/ /tmp/tw-src/
+RUN if [ -n "$(ls -A /tmp/tw-src 2>/dev/null)" ]; then \
+      cp -rT /tmp/tw-src /app; \
+    else \
+      git clone --depth 1 https://github.com/nosqltips/ThreadWeaver.git /app; \
+    fi && rm -rf /tmp/tw-src
 
 # Ensure threadweaver_config.json ships with a valid Ollama tool-use model.
 # Whatever the upstream repo ships (gemma3:4b, a llamafile tag, etc.) gets
