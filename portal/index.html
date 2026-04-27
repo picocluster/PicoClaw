@@ -550,7 +550,7 @@
     <div class="section">
       <h2>Fallback Access — SSH Tunnel</h2>
       <p style="color: var(--dim); font-size: 0.9rem; margin-bottom: 0.8rem;">
-        Use the SSH tunnel if mDNS (<code>*.local</code>) doesn't resolve on your network — for example, on some corporate networks or behind certain routers. Primary access is via <code>claw.local</code> and <code>threadweaver.local</code> after installing the CA cert above.
+        Use the SSH tunnel if mDNS (<code>*.local</code>) doesn't resolve on your network — for example, on some corporate networks or behind certain routers. Primary access is via <code>control.local</code> (portal), <code>claw.local</code> (OpenClaw), and <code>threadweaver.local</code> (chat) after installing the CA cert above.
       </p>
       <code style="display: block; padding: 0.8rem; background: #1a1a3a; border-radius: 8px; font-size: 0.85rem;">
         ssh -L 5174:localhost:5174 -L 18790:localhost:18790 picocluster@clusterclaw
@@ -566,7 +566,7 @@
     <div class="section">
       <h2>Remote Access — Tailscale <span style="font-size: 0.75rem; color: var(--dim); font-weight: normal; margin-left: 0.5rem;">optional</span></h2>
       <p style="color: var(--dim); font-size: 0.9rem; margin-bottom: 1rem;">
-        Tailscale gives the cluster a stable hostname and IP accessible from <em>anywhere</em> — home, office, remote — without port forwarding or VPN configuration. It works through NAT and firewalls. mDNS (<code>claw.local</code>) continues to work on LAN; Tailscale adds remote access on top.
+        Tailscale gives the cluster a stable hostname and IP accessible from <em>anywhere</em> — home, office, remote — without port forwarding or VPN configuration. It works through NAT and firewalls. mDNS (<code>control.local</code>, <code>claw.local</code>, <code>threadweaver.local</code>) continues to work on LAN; Tailscale adds remote access on top.
       </p>
 
       <h3 style="margin-bottom: 0.5rem;">Setup (run on clusterclaw as root)</h3>

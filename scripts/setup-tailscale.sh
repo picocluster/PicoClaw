@@ -4,7 +4,7 @@
 #
 # Tailscale gives the cluster a stable hostname and IP accessible from anywhere —
 # no port forwarding, no VPN config, works through NAT and firewalls.
-# It is entirely optional; mDNS (claw.local / threadweaver.local) handles LAN access.
+# It is entirely optional; mDNS (claw.local / threadweaver.local / control.local) handles LAN access.
 #
 # Usage:
 #   sudo bash scripts/setup-tailscale.sh [OPTIONS]

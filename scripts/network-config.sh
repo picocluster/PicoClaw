@@ -99,7 +99,7 @@ CRUSH_HOST_IP="$CRUSH_IP"
 
 log "Updating /etc/hosts ..."
 apply "sed -i '/# BEGIN PICOCLUSTER CLAW/,/# END PICOCLUSTER CLAW/d' /etc/hosts"
-apply "printf '\n# BEGIN PICOCLUSTER CLAW\n%s  clusterclaw clusterclaw.local claw claw.local\n%s  clustercrush clustercrush.local crush crush.local\n# END PICOCLUSTER CLAW\n' \
+apply "printf '\n# BEGIN PICOCLUSTER CLAW\n%s  clusterclaw clusterclaw.local claw claw.local threadweaver.local control.local\n%s  clustercrush clustercrush.local crush crush.local\n# END PICOCLUSTER CLAW\n' \
   '${CLAW_HOST_IP}' '${CRUSH_HOST_IP}' >> /etc/hosts"
 
 # ---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ if $SSH_CRUSH && [ -n "$CLAW_IP" ]; then
 set -e
 # Update /etc/hosts
 sed -i '/# BEGIN PICOCLUSTER CLAW/,/# END PICOCLUSTER CLAW/d' /etc/hosts
-printf '\n# BEGIN PICOCLUSTER CLAW\n%s  clusterclaw clusterclaw.local claw claw.local\n%s  clustercrush clustercrush.local crush crush.local\n# END PICOCLUSTER CLAW\n' \
+printf '\n# BEGIN PICOCLUSTER CLAW\n%s  clusterclaw clusterclaw.local claw claw.local threadweaver.local control.local\n%s  clustercrush clustercrush.local crush crush.local\n# END PICOCLUSTER CLAW\n' \
   '${CLAW_IP}' '${CRUSH_IP}' >> /etc/hosts
 # Update firewall — allow new claw IP, remove stale rules
 ufw delete allow from 0.0.0.0/0 to any port 11434 2>/dev/null || true

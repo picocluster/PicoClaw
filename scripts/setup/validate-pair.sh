@@ -54,9 +54,9 @@ check  "SSH clustercrush" "ssh -o ConnectTimeout=5 -o BatchMode=yes picocluster@
 
 # ── mDNS ─────────────────────────────────────────────────────────────────────
 section "mDNS (requires Avahi on client)"
-warn_check "clusterclaw.local resolves" "getent hosts clusterclaw.local || ping -c 1 -W 2 clusterclaw.local"
-warn_check "claw.local resolves"        "getent hosts claw.local || ping -c 1 -W 2 claw.local"
+warn_check "claw.local resolves"         "getent hosts claw.local || ping -c 1 -W 2 claw.local"
 warn_check "threadweaver.local resolves" "getent hosts threadweaver.local || ping -c 1 -W 2 threadweaver.local"
+warn_check "control.local resolves"      "getent hosts control.local || ping -c 1 -W 2 control.local"
 
 # ── TLS / CA cert ────────────────────────────────────────────────────────────
 section "TLS"

@@ -203,5 +203,5 @@ if [ "$MODE" = "dhcp" ]; then
     echo "  1. Find the new IPs:  hostname -I"
     echo "  2. Run network-config.sh with the new IPs to sync the stack:"
     echo "     sudo bash scripts/network-config.sh --claw-ip <new-claw-ip> --crush-ip <new-crush-ip> --ssh-crush"
-    echo "  3. mDNS names still work if on same subnet: claw.local, threadweaver.local"
+    echo "  3. mDNS names still work if on same subnet: claw.local, threadweaver.local, control.local"
 fi

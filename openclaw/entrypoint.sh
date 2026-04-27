@@ -17,11 +17,9 @@ cat > "$CONFIG" <<EOF
       "allowedOrigins": [
         "https://claw.local",
         "https://claw.local:443",
-        "https://clusterclaw.local",
-        "https://clusterclaw.local:443",
         "https://threadweaver.local",
         "https://threadweaver.local:443",
-        "http://clusterclaw.local",
+        "http://control.local",
         "http://clusterclaw:18789",
         "https://localhost:18790",
         "https://127.0.0.1:18790",
