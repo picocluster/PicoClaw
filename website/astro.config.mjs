@@ -4,7 +4,7 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://picocluster-claw.picocluster.com',
+	site: 'https://picocluster-claw.com',
 
 	integrations: [
 		starlight({
@@ -55,7 +55,7 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:image',
-						content: 'https://picocluster-claw.picocluster.com/og-image.png',
+						content: 'https://picocluster-claw.com/og-image.png',
 					},
 				},
 				{
