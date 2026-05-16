@@ -39,7 +39,7 @@ cat > "$CONFIG" <<EOF
         "default": true,
         "name": "PicoCluster Claw",
         "model": {
-          "primary": "local/${LOCAL_MODEL:-granite4.1-claw}"
+          "primary": "local/${LOCAL_MODEL:-qwen3.5:9b}"
         },
         "identity": {
           "name": "Claw",
