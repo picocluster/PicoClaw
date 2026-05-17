@@ -39,7 +39,7 @@ cat > "$CONFIG" <<EOF
         "default": true,
         "name": "PicoCluster Claw",
         "model": {
-          "primary": "local/${LOCAL_MODEL:-qwen3.5:9b}"
+          "primary": "local/${LOCAL_MODEL:-qwen3.5:4b}"
         },
         "identity": {
           "name": "Claw",
@@ -59,7 +59,7 @@ cat > "$CONFIG" <<EOF
         "id": "chat",
         "name": "Assistant",
         "model": {
-          "primary": "local/qwen3.5:9b"
+          "primary": "local/qwen3.5:4b"
         },
         "identity": {
           "name": "Assistant",
