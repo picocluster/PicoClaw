@@ -56,6 +56,7 @@ services:
     volumes:
       - openclaw-data:/home/openclaw/.openclaw
       - /home/picocluster/claw-files/openclaw:/home/openclaw/files
+      - ./openclaw/SOUL.md:/home/openclaw/files/SOUL.md:ro
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://127.0.0.1:18789/__openclaw__/health"]
       interval: 30s
