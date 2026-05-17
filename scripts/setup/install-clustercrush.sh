@@ -177,15 +177,16 @@ fi
 #                           the warmup service pins the default model at boot so first-
 #                           request lag is eliminated, and this window covers a typical
 #                           session with pauses between messages
-#   OLLAMA_FLASH_ATTENTION — enable Flash Attention for faster inference on Jetson GPU
 #   OLLAMA_KV_CACHE_TYPE  — q8_0 quantized KV cache reduces VRAM usage on 8GB Orin Nano
-#                           without meaningful quality loss; critical for fitting 9B models
+#                           without meaningful quality loss; helps fit 4B models in
+#                           unified memory alongside system processes
+#   NOTE: OLLAMA_FLASH_ATTENTION is intentionally excluded — it causes silent GPU hangs
+#         on Jetson Orin Nano (tested: inference never completes with it enabled)
 mkdir -p /etc/systemd/system/ollama.service.d
 cat > /etc/systemd/system/ollama.service.d/override.conf <<EOF
 [Service]
 Environment="OLLAMA_HOST=0.0.0.0:${OLLAMA_PORT}"
 Environment="OLLAMA_KEEP_ALIVE=1h"
-Environment="OLLAMA_FLASH_ATTENTION=1"
 Environment="OLLAMA_KV_CACHE_TYPE=q8_0"
 EOF
 
