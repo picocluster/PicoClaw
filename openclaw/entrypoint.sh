@@ -82,6 +82,7 @@ cat > "$CONFIG" <<EOF
       "local": {
         "baseUrl": "${LOCAL_BASE_URL:-http://clustercrush:11434/v1}",
         "apiKey": "none",
+        "apiOptions": {"think": false},
         "models": [
           {"id": "granite4.1-claw", "name": "Granite 4.1 Claw (tool-tuned)"},
           {"id": "granite4.1:8b", "name": "Granite 4.1 8B"},
