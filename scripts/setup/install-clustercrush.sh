@@ -10,30 +10,12 @@ set -euo pipefail
 
 CLAW_IP="${1:-10.1.10.220}"
 DEFAULT_MODEL="${2:-qwen3.5:4b}"
+# Single model deployment — qwen3.5:4b is the default for both ThreadWeaver and OpenClaw
 OLLAMA_PORT="11434"
 USER="picocluster"
 INSTALL_DIR="/opt/clusterclaw"
 
-# Models to pull — DEFAULT_MODEL is pulled first so it's ready fastest.
-# Models must support tool calling for ThreadWeaver MCP.
-# Gemma3 and vision models do NOT support tool calling (TW falls back to chat-only).
-# granite4.1:8b is always pulled — it is the base for the granite4.1-claw Modelfile
-# used as OpenClaw's default agent model.
-MODELS=(
-  "$DEFAULT_MODEL"
-  "granite4.1:8b"
-  "llama3.2:3b"
-  "llama3.1:8b"
-  "phi3.5:3.8b"
-  "qwen3.5:4b"
-  "qwen3.5:9b"
-  "ministral-3:8b"
-  "deepseek-r1:7b"
-  "nemotron-3-nano:4b"
-  "gemma4:e4b"
-)
-# Deduplicate in case DEFAULT_MODEL is already in the list above
-readarray -t MODELS < <(printf '%s\n' "${MODELS[@]}" | awk '!seen[$0]++')
+MODELS=("$DEFAULT_MODEL")
 
 if (( EUID != 0 )); then
   echo "ERROR: Must run as root"
@@ -255,15 +237,6 @@ done
 log "Available models:"
 ollama list 2>&1 | head -20
 
-# Build the granite4.1-claw Modelfile — granite4.1:8b tuned for OpenClaw tool calling.
-# This is OpenClaw's default agent model (temperature 0.15, tool-call SYSTEM block).
-if [[ -f "$INSTALL_DIR/models/Modelfile.granite4.1-claw" ]]; then
-  log "  Building granite4.1-claw from Modelfile..."
-  ollama create granite4.1-claw -f "$INSTALL_DIR/models/Modelfile.granite4.1-claw" 2>&1 | tail -3
-  log "  granite4.1-claw built"
-else
-  log "  WARNING: Modelfile.granite4.1-claw not found — skipping build"
-fi
 
 # ============================================================
 # 4. Startup warm-up service
