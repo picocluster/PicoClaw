@@ -31,7 +31,7 @@
     "local": {
       "enabled": true,
       "api_key": "",
-      "model": "qwen3.5:9b",
+      "model": "qwen3.5:4b",
       "base_url": "http://clustercrush:11434/v1",
       "label": "Local (Ollama)"
     }

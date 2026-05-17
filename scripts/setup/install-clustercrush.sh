@@ -9,7 +9,7 @@
 set -euo pipefail
 
 CLAW_IP="${1:-10.1.10.220}"
-DEFAULT_MODEL="${2:-qwen3.5:9b}"
+DEFAULT_MODEL="${2:-qwen3.5:4b}"
 OLLAMA_PORT="11434"
 USER="picocluster"
 INSTALL_DIR="/opt/clusterclaw"
