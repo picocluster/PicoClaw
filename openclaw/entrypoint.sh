@@ -38,6 +38,7 @@ cat > "$CONFIG" <<EOF
         "id": "main",
         "default": true,
         "name": "PicoCluster Claw",
+        "workspace": "/home/openclaw/files",
         "model": {
           "primary": "local/${LOCAL_MODEL:-qwen3.5:4b}"
         },
