@@ -29,6 +29,7 @@ WORKDIR /home/openclaw
 RUN mkdir -p /home/openclaw/.openclaw
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY SOUL.md /usr/local/share/openclaw/SOUL.md
 
 EXPOSE 18789
 

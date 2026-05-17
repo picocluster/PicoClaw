@@ -112,4 +112,9 @@ else
   fi
 fi
 
+# Deploy SOUL.md to workspace so OpenClaw injects it into every session.
+# Copies on every start so updates to the image are reflected automatically.
+mkdir -p /home/openclaw/files
+cp /usr/local/share/openclaw/SOUL.md /home/openclaw/files/SOUL.md 2>/dev/null || true
+
 exec openclaw gateway --port 18789
