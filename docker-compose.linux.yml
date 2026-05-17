@@ -9,7 +9,7 @@ services:
     environment:
       - LLM_PROVIDER=local
       - LOCAL_BASE_URL=http://host.docker.internal:11434/v1
-      - LOCAL_MODEL=${DEFAULT_MODEL:-qwen3.5:9b}
+      - LOCAL_MODEL=${DEFAULT_MODEL:-qwen3.5:4b}
       - LED_API_URL=http://host.docker.internal:7777
       - PICOCLUSTER_PLATFORM=linux-solo
     extra_hosts:

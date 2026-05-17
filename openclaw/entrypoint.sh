@@ -84,17 +84,7 @@ cat > "$CONFIG" <<EOF
         "baseUrl": "${LOCAL_BASE_URL:-http://clustercrush:11434/v1}",
         "apiKey": "none",
         "models": [
-          {"id": "granite4.1-claw", "name": "Granite 4.1 Claw (tool-tuned)"},
-          {"id": "granite4.1:8b", "name": "Granite 4.1 8B"},
-          {"id": "llama3.2:3b", "name": "Llama 3.2 3B"},
-          {"id": "llama3.1:8b", "name": "Llama 3.1 8B"},
-          {"id": "phi3.5:3.8b", "name": "Phi 3.5 Mini"},
-          {"id": "qwen3.5:4b", "name": "Qwen 3.5 4B"},
-          {"id": "qwen3.5:9b", "name": "Qwen 3.5 9B"},
-          {"id": "ministral-3:8b", "name": "Ministral 3 8B"},
-          {"id": "deepseek-r1:7b", "name": "DeepSeek R1 7B"},
-          {"id": "nemotron-3-nano:4b", "name": "Nemotron 3 Nano 4B"},
-          {"id": "gemma4:e4b", "name": "Gemma 4 E4B"}
+          {"id": "qwen3.5:4b", "name": "Qwen 3.5 4B"}
         ]
       }
     }
