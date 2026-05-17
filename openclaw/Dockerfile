@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     python3 python3-pip \
     bash coreutils findutils grep sed jq \
     && rm -rf /var/lib/apt/lists/*
-RUN npm install -g openclaw
+RUN npm install -g openclaw@latest
 # Install missing bundled channel plugin dependencies
 # OpenClaw bundles channel plugins but doesn't ship all their SDK deps.
 # Without these, every HTTP request crashes with MODULE_NOT_FOUND.

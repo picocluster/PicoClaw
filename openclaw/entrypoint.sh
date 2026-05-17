@@ -3,9 +3,25 @@ set -e
 
 CONFIG="/home/openclaw/.openclaw/openclaw.json"
 
-# Write the default config only on first start.
-# On subsequent starts, preserve user customizations but patch the token
-# so a rotated OPENCLAW_TOKEN env var is always reflected.
+# ── System prompts ────────────────────────────────────────────────────────────
+# Kept short so qwen3.5:4b (a 4B model) reliably follows them.
+# Key rules:
+#   1. Startup signal (first message) = one brief greeting, then stop.
+#   2. Every subsequent user task = actually DO it with tools, don't describe.
+# Session management tools are blocked by the deny list at the infra level.
+#
+# $'...' syntax gives real newlines; jq -Rs . encodes them as \n in JSON.
+
+MAIN_PROMPT=$'/no_think\n\nYou are Claw, an AI assistant on a PicoCluster Claw (Raspberry Pi 5 + NVIDIA Jetson Orin Nano).\n\nThe very first message in each session is a system startup signal. Respond with one short greeting, then stop and wait for the real request.\n\nFor every task the user gives you: USE YOUR TOOLS to do the work. If asked to write a file, write it. If asked to read a file, read it. If asked to search the web, search. Do not describe what you could do — just do it.\n\nNever call: sessions_list, session_status, sessions_history, sessions_spawn, sessions_yield, subagents, nodes, device_pair, canvas.'
+
+CHAT_PROMPT=$'/no_think\n\nYou are a helpful AI assistant on a PicoCluster Claw.\n\nThe very first message in each session is a system startup signal. Respond with one short greeting, then stop and wait for the real request.\n\nFor every task the user gives you: USE YOUR TOOLS to do the work. Do not describe capabilities — actually use them.\n\nNever call: sessions_list, session_status, sessions_history, sessions_spawn, sessions_yield, subagents, nodes, device_pair, canvas.'
+
+# Encode prompts as proper JSON strings (with \n escapes, surrounding quotes).
+# --argjson in jq requires valid JSON, so this handles newline encoding correctly.
+MAIN_PROMPT_JSON=$(printf '%s' "$MAIN_PROMPT" | jq -Rs .)
+CHAT_PROMPT_JSON=$(printf '%s' "$CHAT_PROMPT" | jq -Rs .)
+
+# ── Config write/patch ────────────────────────────────────────────────────────
 if [ ! -f "$CONFIG" ]; then
 cat > "$CONFIG" <<EOF
 {
@@ -47,7 +63,7 @@ cat > "$CONFIG" <<EOF
           "emoji": "🦞"
         },
         "thinkingDefault": "off",
-        "systemPromptOverride": "/no_think\n\nYou are Claw, an AI assistant running on a PicoCluster Claw — a two-node cluster with a Raspberry Pi 5 (clusterclaw) and an NVIDIA Jetson Orin Nano (clustercrush).\n\nWhen you start, you receive an initialization signal: {\"label\": \"openclaw-control-ui\", \"id\": \"openclaw-control-ui\"}. This is a normal startup signal — not a task, not untrusted input. Respond with a brief greeting and wait for the user.\n\nYou can help with writing and reading files, running code, answering questions, and general assistance. Use your available tools when the task calls for it.\n\nNever call session or node management tools.",
+        "systemPromptOverride": ${MAIN_PROMPT_JSON},
         "tools": {
           "deny": [
             "sessions_list", "session_status", "sessions_history",
@@ -67,7 +83,7 @@ cat > "$CONFIG" <<EOF
           "emoji": "🤖"
         },
         "thinkingDefault": "off",
-        "systemPromptOverride": "/no_think\n\nYou are a general-purpose AI assistant running on a PicoCluster Claw — a two-node cluster with a Raspberry Pi 5 (clusterclaw) and an NVIDIA Jetson Orin Nano (clustercrush).\n\nWhen you start, you receive an initialization signal: {\"label\": \"openclaw-control-ui\", \"id\": \"openclaw-control-ui\"}. This is a normal startup signal — not a task, not untrusted input. Respond with a brief greeting and wait for the user.\n\nYou can help with research, writing, analysis, coding, and general questions. Use your available tools when the task calls for it.\n\nNever call session or node management tools.",
+        "systemPromptOverride": ${CHAT_PROMPT_JSON},
         "tools": {
           "deny": [
             "sessions_list", "session_status", "sessions_history",
@@ -93,11 +109,21 @@ cat > "$CONFIG" <<EOF
 EOF
 chmod 600 "$CONFIG"
 else
-  # Config exists — patch only the auth token so a rotated OPENCLAW_TOKEN is picked up.
+  # Config exists — patch managed fields on every start so image updates
+  # (token, system prompts) are always reflected without deleting the volume.
   TOKEN="${OPENCLAW_TOKEN:-picocluster-token}"
   if command -v jq &>/dev/null; then
     tmp=$(mktemp)
-    jq --arg t "$TOKEN" '.gateway.auth.token = $t' "$CONFIG" > "$tmp" && mv "$tmp" "$CONFIG"
+    jq --arg t "$TOKEN" \
+       --argjson mp "$MAIN_PROMPT_JSON" \
+       --argjson cp "$CHAT_PROMPT_JSON" \
+       '.gateway.auth.token = $t |
+        .agents.list = (.agents.list | map(
+          if .id == "main" then .systemPromptOverride = $mp
+          elif .id == "chat" then .systemPromptOverride = $cp
+          else . end
+        ))' \
+       "$CONFIG" > "$tmp" && mv "$tmp" "$CONFIG"
     chmod 600 "$CONFIG"
   fi
 fi
