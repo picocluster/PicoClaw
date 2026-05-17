@@ -86,7 +86,37 @@ services:
       - caddy-data:/data
       - caddy-config:/config
 
+  usage:
+    build: ./usage
+    container_name: usage
+    restart: always
+    ports:
+      - "127.0.0.1:7878:7878"
+    environment:
+      # Retention window for the events table (days). 0 = forever.
+      - PCC_USAGE_RETENTION_DAYS=${PCC_USAGE_RETENTION_DAYS:-30}
+      # Optional spending caps. Comma-separated workflow→cap and
+      # source→cap pairs encoded as JSON. Example:
+      #   PCC_USAGE_CAPS={"workflow":{"plan-trip":1.00},"source":{"openclaw":5.00}}
+      - PCC_USAGE_CAPS=${PCC_USAGE_CAPS:-}
+      # Optional Slack/Discord/generic webhook URLs (comma-separated)
+      # to fan out on agent:run:error.
+      - PCC_USAGE_ERROR_WEBHOOKS=${PCC_USAGE_ERROR_WEBHOOKS:-}
+      # When set, the embedded Ollama proxy at /ollama/* forwards
+      # to this upstream. Leave default to disable in-tree proxying.
+      - OLLAMA_UPSTREAM_URL=${OLLAMA_UPSTREAM_URL:-http://crush:11434}
+    volumes:
+      - usage-data:/data
+    extra_hosts:
+      - "crush:${CRUSH_IP:-10.1.10.221}"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:7878/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
 volumes:
   openclaw-data:
   caddy-data:
   caddy-config:
+  usage-data:
