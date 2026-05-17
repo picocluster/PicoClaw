@@ -87,6 +87,35 @@ EOF
 sysctl -p /etc/sysctl.d/60-disable-ipv6.conf 2>/dev/null || true
 
 # ============================================================
+# Avahi mDNS — clustercrush.local
+# ============================================================
+log "--- Avahi mDNS ---"
+
+if ! command -v avahi-daemon &>/dev/null; then
+  apt-get install -y avahi-daemon avahi-utils libnss-mdns
+  log "Avahi installed"
+else
+  log "Avahi already installed"
+fi
+
+# Restrict to physical LAN interface — prevents Docker bridge interfaces
+# from confusing mDNS announcements and causing macOS to miss them.
+if ! grep -q "^allow-interfaces" /etc/avahi/avahi-daemon.conf 2>/dev/null; then
+  sed -i "s/^\[server\]/[server]\nallow-interfaces=${ETH_IF}/" /etc/avahi/avahi-daemon.conf
+fi
+# Lock hostname so Avahi never renames on probe conflict
+sed -i "s/#host-name=foo/host-name=clustercrush/" /etc/avahi/avahi-daemon.conf
+sed -i 's/^use-ipv6=yes/use-ipv6=no/' /etc/avahi/avahi-daemon.conf
+# Don't publish AAAA records over IPv4 — suppresses IPv6 conflict triggers
+sed -i 's/#publish-aaaa-on-ipv4=yes/publish-aaaa-on-ipv4=no/' /etc/avahi/avahi-daemon.conf
+
+> /etc/avahi/hosts
+
+systemctl enable avahi-daemon
+systemctl restart avahi-daemon
+log "mDNS: clustercrush.local advertised on ${ETH_IF}"
+
+# ============================================================
 # 0. Resize filesystem if needed
 # ============================================================
 DISK="/dev/mmcblk0"
