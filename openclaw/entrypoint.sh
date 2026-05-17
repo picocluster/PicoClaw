@@ -99,6 +99,9 @@ cat > "$CONFIG" <<EOF
       "local": {
         "baseUrl": "${LOCAL_BASE_URL:-http://clustercrush:11434/v1}",
         "apiKey": "none",
+        "request": {
+          "allowPrivateNetwork": true
+        },
         "models": [
           {"id": "qwen3.5:4b", "name": "Qwen 3.5 4B"}
         ]
@@ -122,7 +125,8 @@ else
           if .id == "main" then .systemPromptOverride = $mp
           elif .id == "chat" then .systemPromptOverride = $cp
           else . end
-        ))' \
+        )) |
+        .models.providers.local.request.allowPrivateNetwork = true' \
        "$CONFIG" > "$tmp" && mv "$tmp" "$CONFIG"
     chmod 600 "$CONFIG"
   fi
