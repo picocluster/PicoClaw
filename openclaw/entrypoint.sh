@@ -124,9 +124,11 @@ else
   # Config exists — patch managed fields on every start so image updates
   # (token, system prompts) are always reflected without deleting the volume.
   TOKEN="${OPENCLAW_TOKEN:-picocluster-token}"
+  BASE_URL="${LOCAL_BASE_URL:-http://clustercrush:11434/v1}"
   if command -v jq &>/dev/null; then
     tmp=$(mktemp)
     jq --arg t "$TOKEN" \
+       --arg base_url "$BASE_URL" \
        --argjson mp "$MAIN_PROMPT_JSON" \
        --argjson cp "$CHAT_PROMPT_JSON" \
        '.gateway.auth.token = $t |
@@ -135,6 +137,7 @@ else
           elif .id == "chat" then .systemPromptOverride = $cp
           else . end
         )) |
+        .models.providers.local.baseUrl = $base_url |
         .models.providers.local.request.allowPrivateNetwork = true |
         .models.providers.local.models = [
           {"id": "qwen3.5:4b",         "name": "Qwen 3.5 4B"},
