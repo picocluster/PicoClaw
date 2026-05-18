@@ -103,7 +103,16 @@ cat > "$CONFIG" <<EOF
           "allowPrivateNetwork": true
         },
         "models": [
-          {"id": "qwen3.5:4b", "name": "Qwen 3.5 4B"}
+          {"id": "qwen3.5:4b",         "name": "Qwen 3.5 4B"},
+          {"id": "qwen3.5:9b",         "name": "Qwen 3.5 9B"},
+          {"id": "granite4.1:8b",      "name": "Granite 4.1 8B"},
+          {"id": "llama3.1:8b",        "name": "Llama 3.1 8B"},
+          {"id": "deepseek-r1:7b",     "name": "DeepSeek R1 7B"},
+          {"id": "ministral-3:8b",     "name": "Ministral 3 8B"},
+          {"id": "nemotron-3-nano:4b", "name": "Nemotron 3 Nano 4B"},
+          {"id": "phi3.5:3.8b",        "name": "Phi 3.5 3.8B"},
+          {"id": "llama3.2:3b",        "name": "Llama 3.2 3B"},
+          {"id": "gemma4:e4b",         "name": "Gemma 4 E4B"}
         ]
       }
     }
@@ -126,7 +135,19 @@ else
           elif .id == "chat" then .systemPromptOverride = $cp
           else . end
         )) |
-        .models.providers.local.request.allowPrivateNetwork = true' \
+        .models.providers.local.request.allowPrivateNetwork = true |
+        .models.providers.local.models = [
+          {"id": "qwen3.5:4b",         "name": "Qwen 3.5 4B"},
+          {"id": "qwen3.5:9b",         "name": "Qwen 3.5 9B"},
+          {"id": "granite4.1:8b",      "name": "Granite 4.1 8B"},
+          {"id": "llama3.1:8b",        "name": "Llama 3.1 8B"},
+          {"id": "deepseek-r1:7b",     "name": "DeepSeek R1 7B"},
+          {"id": "ministral-3:8b",     "name": "Ministral 3 8B"},
+          {"id": "nemotron-3-nano:4b", "name": "Nemotron 3 Nano 4B"},
+          {"id": "phi3.5:3.8b",        "name": "Phi 3.5 3.8B"},
+          {"id": "llama3.2:3b",        "name": "Llama 3.2 3B"},
+          {"id": "gemma4:e4b",         "name": "Gemma 4 E4B"}
+        ]' \
        "$CONFIG" > "$tmp" && mv "$tmp" "$CONFIG"
     chmod 600 "$CONFIG"
   fi
