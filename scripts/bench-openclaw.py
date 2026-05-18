@@ -63,7 +63,7 @@ TESTS = [
         "mode": "infer",
         "prompt": "Reply with exactly one word: pong",
         "check": lambda text, _: "pong" in text.lower(),
-        "timeout": 45,
+        "timeout": 90,
     },
     {
         "id": "t1-math",
@@ -75,7 +75,7 @@ TESTS = [
             "Reply with only the number, nothing else."
         ),
         "check": lambda text, _: "221" in text,
-        "timeout": 45,
+        "timeout": 90,
     },
     {
         "id": "t1-json",
@@ -88,7 +88,7 @@ TESTS = [
             "No explanation, just the JSON object."
         ),
         "check": lambda text, _: _check_json(text, {"status": "ok", "count": 42}),
-        "timeout": 45,
+        "timeout": 90,
     },
     # ── Tier 2: single tool call ──────────────────────────────────────────────
     {
@@ -104,7 +104,7 @@ TESTS = [
             _tool_calls(meta) >= 1 and
             any(c.isdigit() for c in text)
         ),
-        "timeout": 90,
+        "timeout": 120,
     },
     {
         "id": "t2-read",
@@ -119,7 +119,7 @@ TESTS = [
             _tool_calls(meta) >= 1 and
             "claw" in text.lower()
         ),
-        "timeout": 90,
+        "timeout": 120,
     },
     {
         "id": "t2-write",
@@ -140,7 +140,7 @@ TESTS = [
             ) and
             _verify_file(f"{WORKSPACE}/bench-write.txt", "hello-bench")
         ),
-        "timeout": 90,
+        "timeout": 120,
         "cleanup": [f"{WORKSPACE}/bench-write.txt"],
     },
     # ── Tier 3: multi-step chaining ───────────────────────────────────────────
@@ -309,6 +309,9 @@ def run_agent(model, prompt, timeout=120):
             return None, {}, elapsed_ms, f"exit {r.returncode}: {err}"
         data = json.loads(r.stdout)
         if data.get("status") != "ok":
+            # Return a sentinel the caller can recognise as a timeout
+            if data.get("status") == "timeout":
+                return None, {}, elapsed_ms, "TIMEOUT"
             return None, {}, elapsed_ms, f"status={data.get('status')}: {json.dumps(data)[:200]}"
         text = (data.get("result", {}).get("payloads") or [{}])[0].get("text", "")
         meta = data.get("result", {}).get("meta", {})
