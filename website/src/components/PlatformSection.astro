@@ -4,11 +4,12 @@
 <section class="section platform-section" id="platforms">
 	<div class="container">
 		<div class="eyebrow">PLATFORMS //</div>
-		<h2 class="section-title">Hardware appliance or software install — your call.</h2>
+		<h2 class="section-title">Boxed appliance or workstation install — same stack.</h2>
 		<p class="section-lede">
-			PicoCluster Claw hardware is the flagship: plug in, power on, agents running
-			in minutes. But the full OpenClaw + ThreadWeaver stack installs on Mac,
-			Linux, and Windows too — same experience, your existing machine.
+			The Claw appliance is the flagship deployment: plug in, power on,
+			runtime up in minutes. The same OpenClaw + ThreadWeaver stack also
+			installs on Mac, Linux, and Windows when you'd rather run it on
+			the workstation you already have.
 		</p>
 
 		<div class="platform-grid">
@@ -17,15 +18,16 @@
 				<div class="platform-icon">🖥</div>
 				<h3>PicoCluster Claw</h3>
 				<p class="platform-desc">
-					The two-node cluster appliance. ClusterClaw runs OpenClaw agents.
-					ClusterCrush handles local LLM inference via Ollama + CUDA.
-					Ships pre-installed and pre-configured — no assembly required.
+					The two-node appliance. ClusterClaw hosts the OpenClaw
+					automation runtime. ClusterCrush serves inference on
+					dedicated CUDA silicon. Ships pre-built and pre-configured
+					— no assembly, no provisioning.
 				</p>
 				<ul class="check-list">
-					<li>OpenClaw pre-installed</li>
-					<li>ThreadWeaver chat interface</li>
+					<li>OpenClaw runtime pre-installed</li>
+					<li>ThreadWeaver operator console</li>
 					<li>28 MCP tools built-in</li>
-					<li>LED strip feedback</li>
+					<li>LED status surface</li>
 					<li>Dedicated inference silicon</li>
 					<li>Always-on, 14W idle</li>
 				</ul>
@@ -40,9 +42,10 @@
 					<div class="sw-body">
 						<h3>macOS</h3>
 						<p>
-							Docker Compose overlay for Apple Silicon and Intel Macs.
-							ThreadWeaver + OpenClaw on your laptop.
-							Install with one command.
+							Docker Compose overlay for Apple Silicon and Intel
+							Macs. OpenClaw runtime, ThreadWeaver, and the
+							Ollama bridge come up with one command — Metal GPU
+							handles inference.
 						</p>
 						<a class="sw-link" href="/getting-started/quickstart/">macOS install →</a>
 					</div>
@@ -53,9 +56,9 @@
 					<div class="sw-body">
 						<h3>Linux</h3>
 						<p>
-							Native install or Docker Compose. Full MCP tool support,
-							Ollama integration, ThreadWeaver chat — identical to
-							the hardware experience.
+							Native install or Docker Compose. Full MCP tool
+							surface, Ollama bridge, and operator console —
+							identical behavior to the appliance.
 						</p>
 						<a class="sw-link" href="/getting-started/quickstart/">Linux install →</a>
 					</div>
@@ -66,18 +69,18 @@
 					<div class="sw-body">
 						<h3>Windows</h3>
 						<p>
-							WSL2 + Docker Compose overlay. Run OpenClaw and
-							ThreadWeaver from Windows Terminal — same stack,
-							same agents.
+							WSL2 + Docker Compose overlay. Bring the OpenClaw
+							runtime and ThreadWeaver up from Windows Terminal
+							— same stack, same tools, same behavior.
 						</p>
 						<a class="sw-link" href="/getting-started/quickstart/">Windows install →</a>
 					</div>
 				</div>
 
 				<div class="sw-note">
-					Software paths use the same Docker Compose base with
-					platform-specific overlays — one codebase, three targets.
-					Upgrade with a single <code>git pull</code>.
+					All three targets share a single Docker Compose base with
+					platform-specific overlays — one codebase, three
+					substrates. Upgrade with a single <code>git pull</code>.
 				</div>
 			</div>
 		</div>

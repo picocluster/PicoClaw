@@ -4,12 +4,16 @@
 #
 # Usage (from PowerShell as Administrator):
 #   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-#   .\install-windows.ps1 [model]
+#   .\install-windows.ps1 [-DefaultModel <model>] [-Tier large|small]
 #
-#   model: default Ollama model (default: granite4.1:8b)
+#   -DefaultModel : default Ollama model (default: qwen3.5:4b — matches the appliance)
+#   -Tier large   : also pull 14B-class models (auto-prompted on 16 GB+ devices)
+#   -Tier small   : skip the large-tier prompt
 
 param(
-    [string]$DefaultModel = "granite4.1:8b"
+    [string]$DefaultModel = "qwen3.5:4b",
+    [ValidateSet("", "large", "small")]
+    [string]$Tier = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,15 +21,27 @@ $ErrorActionPreference = "Stop"
 $INSTALL_DIR   = "$env:USERPROFILE\picocluster-claw"
 $OPENCLAW_TOKEN = "picocluster-token"
 
+# 8 GB-tier model set — matches the Claw appliance catalog so the desktop
+# install behaves identically to the boxed hardware.
 $MODELS = @(
+    "qwen3.5:4b"
+    "qwen3.5:9b"
     "granite4.1:8b"
-    "llama3.2:3b"
     "llama3.1:8b"
-    "mistral:7b"
-    "qwen2.5-coder:7b"
-    "gemma3:4b"
     "deepseek-r1:7b"
-    "qwen2.5:3b"
+    "ministral-3:8b"
+    "nemotron-3-nano:4b"
+    "phi3.5:3.8b"
+    "llama3.2:3b"
+    "gemma4:e4b"
+)
+
+# 16 GB+ tier — larger siblings of the same families. Opt-in: prompted
+# automatically when the device has >= 16 GB of system memory.
+$LARGE_MODELS = @(
+    "qwen3.5:14b"
+    "deepseek-r1:14b"
+    "phi-4:14b"
 )
 
 function Log { param([string]$msg) Write-Host "[$(Get-Date -Format 'HH:mm:ss')] $msg" }
@@ -148,10 +164,37 @@ Log "  Ollama ready"
 # 3. Pull models
 # ============================================================
 Log "--- Step 3/6: Pull models ---"
+
+# Decide whether to pull the 16 GB+ large tier.
+$ramGB = [math]::Floor((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
+$pullLarge = $false
+
+if ($Tier -eq "large") {
+    $pullLarge = $true
+    Log "  Tier: large (forced via -Tier large)"
+} elseif ($Tier -eq "small") {
+    Log "  Tier: small (forced via -Tier small) — skipping large models"
+} elseif ($ramGB -ge 16) {
+    Log "  Detected $ramGB GB RAM — large 14B-class models will fit."
+    $reply = Read-Host "  Pull large-tier models too (qwen3.5:14b, deepseek-r1:14b, phi-4:14b)? [y/N]"
+    if ($reply -match '^(?i)(y|yes)$') { $pullLarge = $true }
+} else {
+    Log "  Detected $ramGB GB RAM — staying on 8 GB-tier models."
+}
+
 foreach ($model in $MODELS) {
     Log "  Pulling $model..."
     & ollama pull $model 2>&1 | Select-Object -Last 1
 }
+
+if ($pullLarge) {
+    Log "--- Pulling large-tier models (16 GB+) ---"
+    foreach ($model in $LARGE_MODELS) {
+        Log "  Pulling $model..."
+        & ollama pull $model 2>&1 | Select-Object -Last 1
+    }
+}
+
 Log "  Installed models:"
 & ollama list 2>&1 | Select-Object -Skip 1 | ForEach-Object { Log "    $_" }
 

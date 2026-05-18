@@ -3,24 +3,46 @@
 # Runs the same Docker stack as the cluster variant, with Ollama native (GPU or CPU).
 # Supports Ubuntu 22.04/24.04 and Debian 12+.
 #
-# Usage: bash install-linux.sh [model]
-#   model: default Ollama model (default: llama3.2:3b)
+# Usage: bash install-linux.sh [model] [--tier large|--tier small]
+#   model: default Ollama model (default: qwen3.5:4b — matches the appliance)
+#   --tier large : also pull 14B-class models (auto-prompted on 16 GB+ devices)
+#   --tier small : skip the large-tier prompt
 set -euo pipefail
 
-DEFAULT_MODEL="${1:-granite4.1:8b}"
+DEFAULT_MODEL="${1:-qwen3.5:4b}"
 INSTALL_DIR="${HOME}/picocluster-claw"
 OPENCLAW_TOKEN="picocluster-token"
 
+# 8 GB-tier model set — matches the Claw appliance catalog so the desktop
+# install behaves identically to the boxed hardware.
 MODELS=(
+  "qwen3.5:4b"
+  "qwen3.5:9b"
   "granite4.1:8b"
-  "llama3.2:3b"
   "llama3.1:8b"
-  "mistral:7b"
-  "qwen2.5-coder:7b"
-  "gemma3:4b"
   "deepseek-r1:7b"
-  "qwen2.5:3b"
+  "ministral-3:8b"
+  "nemotron-3-nano:4b"
+  "phi3.5:3.8b"
+  "llama3.2:3b"
+  "gemma4:e4b"
 )
+
+# 16 GB+ tier — larger siblings of the same families. Opt-in: prompted
+# automatically when the device has >= 16 GB of system memory.
+LARGE_MODELS=(
+  "qwen3.5:14b"
+  "deepseek-r1:14b"
+  "phi-4:14b"
+)
+
+# Allow non-interactive override: --tier large | --tier small
+TIER_OVERRIDE=""
+for arg in "$@"; do
+  case "$arg" in
+    --tier=large|--tier=small) TIER_OVERRIDE="${arg#--tier=}" ;;
+  esac
+done
 
 log() { echo "[$(date '+%H:%M:%S')] $*"; }
 
@@ -102,10 +124,40 @@ done
 # 3. Pull models
 # ============================================================
 log "--- Step 3/6: Pull models ---"
+
+# Decide whether to pull the 16 GB+ large tier.
+RAM_KB=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)
+RAM_GB=$(( RAM_KB / 1024 / 1024 ))
+PULL_LARGE=0
+
+if [[ "$TIER_OVERRIDE" == "large" ]]; then
+  PULL_LARGE=1
+  log "  Tier: large (forced via --tier=large)"
+elif [[ "$TIER_OVERRIDE" == "small" ]]; then
+  log "  Tier: small (forced via --tier=small) — skipping large models"
+elif [[ "$RAM_GB" -ge 16 ]]; then
+  log "  Detected ${RAM_GB} GB RAM — large 14B-class models will fit."
+  read -r -p "  Pull large-tier models too (qwen3.5:14b, deepseek-r1:14b, phi-4:14b)? [y/N] " reply </dev/tty || reply=""
+  reply_lc=$(printf '%s' "$reply" | tr '[:upper:]' '[:lower:]')
+  if [[ "$reply_lc" == "y" || "$reply_lc" == "yes" ]]; then
+    PULL_LARGE=1
+  fi
+else
+  log "  Detected ${RAM_GB} GB RAM — staying on 8 GB-tier models."
+fi
+
 for model in "${MODELS[@]}"; do
   log "  Pulling $model..."
   ollama pull "$model" 2>&1 | tail -1
 done
+
+if [[ "$PULL_LARGE" -eq 1 ]]; then
+  log "--- Pulling large-tier models (16 GB+) ---"
+  for model in "${LARGE_MODELS[@]}"; do
+    log "  Pulling $model..."
+    ollama pull "$model" 2>&1 | tail -1
+  done
+fi
 
 log "  Installed models:"
 ollama list 2>&1 | tail -n +2 | awk '{printf "    %s (%s)\n", $1, $3$4}'

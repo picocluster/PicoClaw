@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PicoCluster Claw — Mac Solo</title>
+  <title>PicoCluster Claw — Desktop AI Datacenter (Mac)</title>
   <style>
     :root {
       --bg: #0a0a1a;
@@ -34,6 +34,35 @@
       margin-bottom: 0.5rem;
     }
     header p { color: var(--dim); font-size: 1.1rem; }
+
+    .beta-banner {
+      display: flex; align-items: flex-start; gap: 0.7rem;
+      max-width: 700px; margin: 0 auto 2.5rem auto;
+      padding: 0.7rem 0.95rem;
+      background: rgba(251, 191, 36, 0.06);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: 8px;
+      text-align: left;
+    }
+    .beta-banner .tag {
+      flex-shrink: 0;
+      padding: 0.15rem 0.55rem;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      border-radius: 999px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.7rem; letter-spacing: 0.1em;
+      color: var(--amber); font-weight: 700;
+    }
+    .beta-banner .text { color: var(--dim); font-size: 0.88rem; line-height: 1.5; }
+    .beta-banner .text strong { color: var(--text); font-weight: 600; }
+    .beta-banner .text code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.92em; color: var(--accent);
+      background: rgba(74, 158, 255, 0.1);
+      border: 1px solid rgba(74, 158, 255, 0.25);
+      padding: 0.05rem 0.3rem; border-radius: 3px;
+    }
     .badge {
       display: inline-block; background: var(--card); border: 1px solid var(--border);
       border-radius: 100px; padding: 0.3rem 1rem; font-size: 0.8rem; color: var(--dim);
@@ -137,8 +166,15 @@
     <header>
       <div class="badge">Mac Solo Edition</div>
       <h1>PicoCluster Claw</h1>
-      <p>Private AI on your Mac &mdash; Ollama (Metal GPU) + ThreadWeaver + OpenClaw + 28 MCP tools</p>
+      <p>Desktop AI datacenter on your Mac &mdash; OpenClaw automation runtime, Metal-GPU inference via Ollama, ThreadWeaver console, and 28 MCP tools on the local network.</p>
     </header>
+
+    <div class="beta-banner" role="note">
+      <span class="tag">BETA</span>
+      <span class="text">
+        The stack is moving fast. <strong>OpenClaw</strong>, <strong>ThreadWeaver</strong>, and the <strong>Ollama model catalog</strong> all ship frequent updates. Pin a release if you need stability &mdash; <code>git pull</code> if you want the edge.
+      </span>
+    </div>
 
     <div class="status-bar">
       <div class="status-item">
@@ -167,17 +203,17 @@
     <div class="cards">
       <div class="card">
         <h3>ThreadWeaver</h3>
-        <div class="desc">Chat with local LLMs. Branching conversations, search, notebooks. Switch between models or connect external providers (Claude, GPT, Gemini).</div>
-        <a href="http://localhost:5173">Open Chat</a>
+        <div class="desc">Operator console for the cluster. Branching threads, search, notebooks. Routes per-thread to on-device inference or external providers (Claude, GPT, Gemini).</div>
+        <a href="http://localhost:5173">Open Console</a>
       </div>
       <div class="card">
         <h3>OpenClaw Dashboard</h3>
-        <div class="desc">AI agent with autonomous planning, tool use, and messaging channel integrations (Telegram, Discord, Slack).</div>
+        <div class="desc">Local automation runtime with planning, tool-calling, and messaging integrations (Telegram, Discord, Slack).</div>
         <a href="https://localhost:18790">Open Dashboard</a>
       </div>
       <div class="card">
         <h3>Ollama</h3>
-        <div class="desc">OpenAI-compatible inference endpoint running on Apple Silicon (Metal GPU). Manage models from the terminal.</div>
+        <div class="desc">OpenAI-compatible inference endpoint backed by Apple Silicon (Metal GPU). Manage models from the terminal.</div>
         <a href="#" onclick="navigator.clipboard.writeText('http://localhost:11434/v1'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy API URL',1500); return false;" class="secondary">Copy API URL</a>
       </div>
     </div>
@@ -190,6 +226,50 @@
       <div id="models-table">
         <p style="color: var(--dim); font-size: 0.85rem;">Loading models...</p>
       </div>
+    </div>
+
+    <div class="section">
+      <h2>Recommended Model Catalog</h2>
+      <p style="color: var(--dim); font-size: 0.9rem; margin-bottom: 0.4rem;">
+        Same 8 GB-tier catalog as the PicoCluster Claw appliance. The install script pulls all ten by default.
+      </p>
+      <p style="color: var(--dim); font-size: 0.82rem; margin-bottom: 1rem;">
+        Apple Silicon shares unified memory between CPU and GPU — keep at least 4&ndash;6 GB free for the system when picking a model.
+      </p>
+      <table>
+        <thead><tr><th>Model</th><th>Type</th><th>Size</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>qwen3.5:4b</strong></td><td>General</td><td>3.4 GB</td><td>Default &mdash; fast, tool calling, reasoning, structured output</td></tr>
+          <tr><td>qwen3.5:9b</td><td>General</td><td>6.6 GB</td><td>Stronger reasoning + tool calling</td></tr>
+          <tr><td>granite4.1:8b</td><td>General</td><td>5.3 GB</td><td>Strong tool calling and agentic workflows</td></tr>
+          <tr><td>llama3.1:8b</td><td>General</td><td>4.9 GB</td><td>Tool calling, proven reliability</td></tr>
+          <tr><td>deepseek-r1:7b</td><td>Reasoning</td><td>4.7 GB</td><td>Shows reasoning steps</td></tr>
+          <tr><td>ministral-3:8b</td><td>General</td><td>6.0 GB</td><td>Edge-optimized, vision + tool calling</td></tr>
+          <tr><td>nemotron-3-nano:4b</td><td>General</td><td>2.8 GB</td><td>NVIDIA agentic, tool calling + thinking</td></tr>
+          <tr><td>phi3.5:3.8b</td><td>Reasoning</td><td>2.2 GB</td><td>Compact, tool calling supported</td></tr>
+          <tr><td>llama3.2:3b</td><td>General</td><td>2.0 GB</td><td>Fastest responses, lighter tool chains</td></tr>
+          <tr><td>gemma4:e4b</td><td>General</td><td>9.6 GB</td><td>Multilingual, vision, tool calling</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size: 1.05rem; margin: 1.5rem 0 0.4rem 0;">Large tier &mdash; 16 GB+ devices</h3>
+      <p style="color: var(--dim); font-size: 0.9rem; margin-bottom: 0.6rem;">
+        Larger siblings of the same families. The installer auto-detects available RAM and prompts to pull these; you can also opt in explicitly with <code>bash install-mac.sh --tier=large</code> or skip with <code>--tier=small</code>.
+      </p>
+      <p style="color: var(--dim); font-size: 0.82rem; margin-bottom: 1rem;">
+        Pull on demand: <code>ollama pull qwen3.5:14b</code>
+      </p>
+      <table>
+        <thead><tr><th>Model</th><th>Type</th><th>Size</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>qwen3.5:14b</strong></td><td>General</td><td>~9 GB</td><td>Larger sibling of qwen3.5:4b/9b &mdash; stronger reasoning + tool calling</td></tr>
+          <tr><td>deepseek-r1:14b</td><td>Reasoning</td><td>~9 GB</td><td>Larger reasoning model with visible thinking traces</td></tr>
+          <tr><td>phi-4:14b</td><td>Reasoning</td><td>~9 GB</td><td>Next-gen Phi family &mdash; successor to phi3.5:3.8b</td></tr>
+        </tbody>
+      </table>
+      <p style="color: var(--dim); font-size: 0.82rem; margin-top: 0.6rem;">
+        Only one model is held in GPU memory at a time. Switching models in ThreadWeaver takes 30&ndash;60 s while the new one loads.
+      </p>
     </div>
 
     <div class="section">
@@ -290,7 +370,7 @@
       <details class="faq">
         <summary>How do I add more models?</summary>
         <div class="answer">
-          <p>From your terminal: <code>ollama pull &lt;model-name&gt;</code>. Browse <a href="https://ollama.com/library" style="color: var(--accent);" target="_blank">ollama.com/library</a> for available models. Apple Silicon Macs with 16GB+ RAM can run larger models like <code>llama3.1:70b</code> or <code>qwen2.5:32b</code>.</p>
+          <p>From your terminal: <code>ollama pull &lt;model-name&gt;</code>. Browse <a href="https://ollama.com/library" style="color: var(--accent);" target="_blank">ollama.com/library</a> for available models. Apple Silicon Macs with 16 GB+ RAM can run the large-tier picks above (<code>qwen3.5:14b</code>, <code>deepseek-r1:14b</code>, <code>phi-4:14b</code>) &mdash; the installer auto-prompts to pull them, or run <code>bash install-mac.sh --tier=large</code> to opt in non-interactively.</p>
         </div>
       </details>
 

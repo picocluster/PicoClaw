@@ -112,7 +112,10 @@ cat > "$CONFIG" <<EOF
           {"id": "nemotron-3-nano:4b", "name": "Nemotron 3 Nano 4B"},
           {"id": "phi3.5:3.8b",        "name": "Phi 3.5 3.8B"},
           {"id": "llama3.2:3b",        "name": "Llama 3.2 3B"},
-          {"id": "gemma4:e4b",         "name": "Gemma 4 E4B"}
+          {"id": "gemma4:e4b",         "name": "Gemma 4 E4B"},
+          {"id": "qwen3.5:14b",        "name": "Qwen 3.5 14B (large tier — 16 GB+ desktop only)"},
+          {"id": "deepseek-r1:14b",    "name": "DeepSeek R1 14B (large tier — 16 GB+ desktop only)"},
+          {"id": "phi-4:14b",          "name": "Phi-4 14B (large tier — 16 GB+ desktop only)"}
         ]
       }
     }
@@ -149,7 +152,10 @@ else
           {"id": "nemotron-3-nano:4b", "name": "Nemotron 3 Nano 4B"},
           {"id": "phi3.5:3.8b",        "name": "Phi 3.5 3.8B"},
           {"id": "llama3.2:3b",        "name": "Llama 3.2 3B"},
-          {"id": "gemma4:e4b",         "name": "Gemma 4 E4B"}
+          {"id": "gemma4:e4b",         "name": "Gemma 4 E4B"},
+          {"id": "qwen3.5:14b",        "name": "Qwen 3.5 14B (large tier — 16 GB+ desktop only)"},
+          {"id": "deepseek-r1:14b",    "name": "DeepSeek R1 14B (large tier — 16 GB+ desktop only)"},
+          {"id": "phi-4:14b",          "name": "Phi-4 14B (large tier — 16 GB+ desktop only)"}
         ]' \
        "$CONFIG" > "$tmp" && mv "$tmp" "$CONFIG"
     chmod 600 "$CONFIG"

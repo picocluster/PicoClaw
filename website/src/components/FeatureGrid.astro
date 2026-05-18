@@ -4,53 +4,57 @@
 <section class="section features" id="hardware">
 	<div class="container">
 		<div class="eyebrow">HARDWARE //</div>
-		<h2 class="section-title">Two nodes. One private AI cluster.</h2>
+		<h2 class="section-title">Two nodes. One private execution surface.</h2>
 		<p class="section-lede">
-			Claw runs OpenClaw agents. Crush runs local LLMs via Ollama with CUDA.
-			Together they form a complete, always-on inference system that fits
-			on your desk.
+			ClusterClaw hosts the OpenClaw automation runtime. ClusterCrush
+			handles inference on dedicated CUDA silicon. Together they form an
+			always-on AI execution node that lives on your desk and answers on
+			your LAN.
 		</p>
 
 		<div class="grid">
 			<article class="card card-blue">
 				<div class="card-label">01 // CLUSTERCLAW</div>
-				<h3>OpenClaw node</h3>
+				<h3>Automation runtime node</h3>
 				<p>
-					Raspberry Pi 5 (8 GB) running OpenClaw — the agent runtime.
-					Handles planning, memory, tool dispatch, and MCP server
-					coordination. 28 built-in MCP tools across five servers:
-					LEDs, system, clustercrush bridge, time, and files.
+					Raspberry Pi 5 (8 GB) hosting OpenClaw — the local
+					automation runtime. Handles planning, memory, tool
+					dispatch, and MCP server coordination. Ships with 28
+					built-in tools across five servers: LEDs, system,
+					clustercrush bridge, time, and files.
 				</p>
 				<div class="spec-row">
 					<div class="spec"><span class="spec-label">SoC</span>RPi 5 BCM2712</div>
 					<div class="spec"><span class="spec-label">RAM</span>8 GB LPDDR4X</div>
-					<div class="spec"><span class="spec-label">Role</span>Agents / MCP</div>
+					<div class="spec"><span class="spec-label">Role</span>Runtime / MCP</div>
 				</div>
 			</article>
 
 			<article class="card card-red">
 				<div class="card-label">02 // CLUSTERCRUSH</div>
-				<h3>Local LLM inference node</h3>
+				<h3>Dedicated inference node</h3>
 				<p>
-					Jetson Orin Nano Super (8 GB) with dedicated CUDA cores
-					running Ollama. Serves models to Claw and to ThreadWeaver
-					chat — no GPU sharing with your workstation.
+					Jetson Orin Nano Super (8 GB) with 1024 CUDA cores serving
+					OpenAI-compatible inference over the LAN. Reserved silicon
+					— nothing else competes for the GPU, and your workstation
+					stays free for its own work.
 				</p>
 				<div class="spec-row">
 					<div class="spec"><span class="spec-label">SoC</span>Orin Nano Super</div>
 					<div class="spec"><span class="spec-label">RAM</span>8 GB unified</div>
-					<div class="spec"><span class="spec-label">Role</span>Ollama / CUDA</div>
+					<div class="spec"><span class="spec-label">Role</span>Inference / CUDA</div>
 				</div>
 			</article>
 
 			<article class="card card-amber">
 				<div class="card-label">03 // LED FEEDBACK</div>
-				<h3>Physical AI status strip</h3>
+				<h3>Out-of-band status surface</h3>
 				<p>
-					Pimoroni Blinkt! LED strip driven by an MCP server — the first
-					MCP server for physical AI feedback. Claw's agents light the
-					strip to reflect model state, inference activity, and alerts.
-					Your AI is visible, not just running.
+					A Pimoroni Blinkt! strip driven by its own MCP server — the
+					first MCP for physical feedback. The runtime drives the
+					strip to surface inference activity, tool calls, and alerts
+					without a screen. The cluster's state is visible at a
+					glance.
 				</p>
 				<div class="spec-row">
 					<div class="spec"><span class="spec-label">Type</span>Blinkt! RGB</div>
@@ -61,11 +65,12 @@
 
 			<article class="card card-dim">
 				<div class="card-label">04 // 28 MCP TOOLS</div>
-				<h3>Agents that control the hardware</h3>
+				<h3>Tool-calling against the appliance itself</h3>
 				<p>
-					Five MCP servers expose every cluster capability to OpenClaw:
-					LED strip animation, system metrics, LLM bridge to Crush,
-					time/scheduling, and local file access. Agents use tools, not
+					Five MCP servers expose the cluster as callable surface
+					area: LED control, system metrics, the inference bridge to
+					Crush, time and scheduling, and sandboxed file access. The
+					runtime drives the box through its tools, not through
 					config files.
 				</p>
 				<div class="spec-row">

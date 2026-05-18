@@ -4,22 +4,24 @@
 <section class="section tw-section">
 	<div class="container">
 		<div class="eyebrow">CHAT INTERFACE //</div>
-		<h2 class="section-title">ThreadWeaver — multi-provider chat, built for local AI.</h2>
+		<h2 class="section-title">ThreadWeaver — the operator console for the cluster.</h2>
 		<p class="section-lede">
-			ThreadWeaver is the chat interface that ships with PicoCluster Claw.
-			It runs on top of the AgentStateGraph (ASG) substrate and connects
-			to local models on Crush, cloud APIs, or both — your choice every session.
+			ThreadWeaver is the chat front-end that ships with the appliance.
+			It runs on the AgentStateGraph (ASG) substrate and can route any
+			thread to on-cluster inference, an external provider, or both —
+			selected per session, not system-wide.
 		</p>
 
 		<div class="features-row">
 			<div class="feature">
 				<div class="feature-icon icon-blue">⚡</div>
 				<div class="feature-body">
-					<h3>5+ model providers</h3>
+					<h3>5+ providers, one router</h3>
 					<p>
-						Switch between Ollama (local), OpenAI, Anthropic, Mistral,
-						and Groq from the same interface. No separate installs —
-						credentials live in one config, models are one click away.
+						On-cluster inference (Ollama), OpenAI, Anthropic,
+						Mistral, and Groq all sit behind the same interface.
+						Credentials live in one config, routing happens
+						per-thread, and the active provider is always visible.
 					</p>
 				</div>
 			</div>
@@ -55,9 +57,10 @@
 				<div class="feature-body">
 					<h3>Encryption at rest</h3>
 					<p>
-						All conversation history is encrypted on disk.
-						Local models never leave the cluster. Cloud calls
-						are opt-in — you decide per-thread, not system-wide.
+						Thread history is encrypted on disk. On-cluster
+						inference never leaves the appliance, and any external
+						provider call is opt-in per thread — not a system-wide
+						toggle.
 					</p>
 				</div>
 			</div>

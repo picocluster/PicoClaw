@@ -40,6 +40,35 @@
     }
     header p { color: var(--dim); font-size: 1.1rem; }
 
+    .beta-banner {
+      display: flex; align-items: flex-start; gap: 0.7rem;
+      max-width: 700px; margin: 0 auto 2.5rem auto;
+      padding: 0.7rem 0.95rem;
+      background: rgba(251, 191, 36, 0.06);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: 8px;
+      text-align: left;
+    }
+    .beta-banner .beta-tag {
+      flex-shrink: 0;
+      padding: 0.15rem 0.55rem;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      border-radius: 999px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.7rem; letter-spacing: 0.1em;
+      color: var(--amber); font-weight: 700;
+    }
+    .beta-banner .beta-text { color: var(--dim); font-size: 0.88rem; line-height: 1.5; }
+    .beta-banner .beta-text strong { color: var(--text); font-weight: 600; }
+    .beta-banner .beta-text code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.92em; color: var(--accent);
+      background: rgba(74, 158, 255, 0.1);
+      border: 1px solid rgba(74, 158, 255, 0.25);
+      padding: 0.05rem 0.3rem; border-radius: 3px;
+    }
+
     .status-bar {
       display: flex;
       gap: 1rem;
@@ -304,7 +333,7 @@
 
     <header>
       <h1>PicoCluster Claw</h1>
-      <p>Self-hosted AI agent appliance &mdash; private, local, always-on</p>
+      <p>Desktop AI datacenter &mdash; OpenClaw automation runtime + dedicated CUDA inference, private and always-on</p>
       <p style="margin-top: 0.8rem; font-size: 0.9rem;">
         <a href="https://picocluster.com" target="_blank" style="color: var(--accent); text-decoration: none; margin: 0 0.6rem;">PicoCluster</a>
         &middot;
@@ -313,6 +342,13 @@
         <a href="https://github.com/nosqltips/ThreadWeaver" target="_blank" style="color: var(--accent); text-decoration: none; margin: 0 0.6rem;">ThreadWeaver</a>
       </p>
     </header>
+
+    <div class="beta-banner" role="note">
+      <span class="beta-tag">BETA</span>
+      <span class="beta-text">
+        The stack is moving fast. <strong>OpenClaw</strong>, <strong>ThreadWeaver</strong>, and the <strong>Ollama model catalog</strong> all ship frequent updates. Pin a release if you need stability &mdash; <code>git pull</code> if you want the edge.
+      </span>
+    </div>
 
     <!-- ── Status bar ── -->
     <div class="status-bar" id="status-bar">
@@ -426,15 +462,15 @@
     <div class="cards">
       <div class="card">
         <h3>ThreadWeaver <span class="tag primary">LAN</span></h3>
-        <div class="desc">Chat with your local AI. Branching conversations, search, notebooks, and tool use.</div>
+        <div class="desc">Operator console for the cluster. Branching threads, search, notebooks, and tool-calling against the appliance.</div>
         <div class="btn-row">
-          <a href="https://threadweaver.local">Open Chat</a>
+          <a href="https://threadweaver.local">Open Console</a>
           <a href="https://localhost:5174" class="secondary" title="Fallback: requires SSH tunnel">SSH tunnel</a>
         </div>
       </div>
       <div class="card">
         <h3>OpenClaw <span class="tag primary">LAN</span></h3>
-        <div class="desc">AI agent with browser automation, tools, and messaging channels. Token required.</div>
+        <div class="desc">Local automation runtime — browser automation, tool-calling, and messaging channels. Token required.</div>
         <div class="btn-row">
           <a href="https://claw.local">Open Dashboard</a>
           <a href="https://localhost:18790" class="secondary" title="Fallback: requires SSH tunnel">SSH tunnel</a>
@@ -924,18 +960,18 @@
       <div class="faq-category">Privacy &amp; security</div>
 
       <details class="faq">
-        <summary>Is my data private when I use the local LLM?</summary>
+        <summary>Is my data private when I use on-cluster inference?</summary>
         <div class="answer">
-          <p>Yes. The <code>local</code> provider runs inference on clustercrush (Jetson Orin Nano) using Ollama. Data path: browser → HTTPS (your LAN) → ThreadWeaver on clusterclaw → Ollama on clustercrush. Nothing leaves your network. Model weights and conversations are stored locally.</p>
+          <p>Yes. The <code>local</code> provider runs inference on clustercrush (Jetson Orin Nano) via Ollama. Data path: browser → HTTPS (your LAN) → ThreadWeaver on clusterclaw → Ollama on clustercrush. Nothing leaves your network. Model weights and thread history are stored on the appliance.</p>
         </div>
       </details>
 
       <details class="faq">
         <summary>What's the difference between ThreadWeaver and OpenClaw?</summary>
         <div class="answer">
-          <p><strong>ThreadWeaver</strong> is chat-first. Branching conversations, model switching mid-thread, search, notebooks. Best for talking to the model and using tools interactively.</p>
-          <p><strong>OpenClaw</strong> is an agent framework. Give it a goal, it autonomously plans, uses tools, browses the web, and reports back. Integrates with Telegram/Discord/Slack for mobile access.</p>
-          <p>Both run simultaneously, share the same Ollama backend, and access the same MCP tools.</p>
+          <p><strong>ThreadWeaver</strong> is the operator console — branching threads, per-thread model routing, search, notebooks. Best for interactive work and exercising tools by hand.</p>
+          <p><strong>OpenClaw</strong> is the local automation runtime — give it a goal and it plans, calls tools, and reports back. Integrates with Telegram, Discord, and Slack for remote access.</p>
+          <p>Both run side-by-side, share the same inference backend, and call the same MCP tool surface.</p>
         </div>
       </details>
 

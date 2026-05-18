@@ -6,26 +6,38 @@
 	<div class="container">
 		<div class="eyebrow">
 			<span class="dot"></span>
-			<span class="eyebrow-text">PICOCLUSTER CLAW // private AI appliance</span>
+			<span class="eyebrow-text">PICOCLUSTER CLAW // desktop AI datacenter</span>
+		</div>
+
+		<div class="beta-strip" role="note">
+			<span class="beta-tag">BETA</span>
+			<span class="beta-text">
+				The stack is moving fast. <strong>OpenClaw</strong>,
+				<strong>ThreadWeaver</strong>, and the
+				<strong>Ollama model catalog</strong> all ship frequent
+				updates. Pin a release if you need stability —
+				<code>git pull</code> if you want the edge.
+			</span>
 		</div>
 
 		<h1>
-			Your AI. Your hardware.
-			<span class="glow">No cloud required.</span>
+			A desktop AI datacenter.
+			<span class="glow">Yours, on your network.</span>
 		</h1>
 
 		<p class="lede">
-			PicoCluster Claw is a self-contained AI appliance that runs
-			<strong class="hl-blue">OpenClaw agents</strong> and
-			<strong class="hl-blue">local LLMs</strong> on your desk —
-			no API keys, no subscriptions, no data leaving your network.
+			PicoCluster Claw is a two-node compute appliance that runs
+			<strong class="hl-blue">OpenClaw</strong> — a local automation
+			runtime with tool-calling — alongside a dedicated CUDA inference
+			node. One private execution surface for the agents and models you
+			already use.
 		</p>
 
 		<p class="lede">
-			Idle at <strong class="hl-white">14W</strong>.
-			Private by default. Under
-			<strong class="hl-white">$2/month</strong> to run.
-			Starts in seconds and stays on 24/7 so your agents are always ready.
+			<strong class="hl-white">14W</strong> idle.
+			<strong class="hl-white">~$2/month</strong> to keep running.
+			Boots in seconds, stays up 24/7, and answers on your LAN — no
+			API keys, no metered tokens, no traffic off the network.
 		</p>
 
 		<div class="cta-row">
@@ -38,8 +50,8 @@
 		</div>
 
 		<p class="badges">
-			<span class="badge">OpenClaw built-in</span>
-			<span class="badge">Local LLM inference</span>
+			<span class="badge">OpenClaw runtime</span>
+			<span class="badge">Dedicated CUDA node</span>
 			<span class="badge badge-red">No API keys</span>
 			<span class="badge">Always-on</span>
 			<span class="badge">Open source</span>
@@ -117,6 +129,53 @@
 
 	.eyebrow-text {
 		font-weight: 700;
+	}
+
+	.beta-strip {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.65rem;
+		padding: 0.6rem 0.85rem;
+		margin: 0 0 1.75rem 0;
+		background: rgba(252, 211, 77, 0.06);
+		border: 1px solid rgba(252, 211, 77, 0.28);
+		border-radius: var(--ctx-radius-md);
+		max-width: 44rem;
+	}
+
+	.beta-tag {
+		flex-shrink: 0;
+		padding: 0.15rem 0.5rem;
+		background: rgba(252, 211, 77, 0.15);
+		border: 1px solid rgba(252, 211, 77, 0.35);
+		border-radius: 999px;
+		font-family: var(--ctx-font-mono);
+		font-size: 0.65rem;
+		letter-spacing: 0.12em;
+		color: var(--ctx-warn);
+		font-weight: 700;
+		line-height: 1.4;
+	}
+
+	.beta-text {
+		font-size: 0.85rem;
+		color: var(--ctx-text-dim);
+		line-height: 1.5;
+	}
+
+	.beta-text strong {
+		color: #ffffff;
+		font-weight: 600;
+	}
+
+	.beta-text code {
+		font-family: var(--ctx-font-mono);
+		font-size: 0.9em;
+		color: var(--claw-blue-text);
+		background: rgba(27, 117, 186, 0.1);
+		border: 1px solid rgba(27, 117, 186, 0.25);
+		padding: 0.05rem 0.3rem;
+		border-radius: var(--ctx-radius-sm);
 	}
 
 	h1 {
