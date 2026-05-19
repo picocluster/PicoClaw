@@ -1,0 +1,80 @@
+# LiteLLM proxy config — PicoCluster Claw
+#
+# Sits between OpenClaw and Ollama on clustercrush.
+# Translates OpenAI-compatible tool-call schemas into each model's native
+# format so models with non-standard tool templates (Mistral, Command-R, etc.)
+# receive properly-structured prompts.
+#
+# All model_names must match the IDs registered in openclaw/entrypoint.sh.
+# add_to_model_list in general_settings auto-exposes unlisted pass-through models.
+
+model_list:
+
+  # ── Validated agents (pass T2+ tool tests) ─────────────────────────────────
+  - model_name: granite4.1:8b
+    litellm_params:
+      model: ollama_chat/granite4.1:8b
+      api_base: http://crush:11434
+
+  - model_name: nemotron-3-nano:4b
+    litellm_params:
+      model: ollama_chat/nemotron-3-nano:4b
+      api_base: http://crush:11434
+
+  - model_name: llama3.1:8b
+    litellm_params:
+      model: ollama_chat/llama3.1:8b
+      api_base: http://crush:11434
+
+  - model_name: llama3.2:3b
+    litellm_params:
+      model: ollama_chat/llama3.2:3b
+      api_base: http://crush:11434
+
+  - model_name: qwen3.5:4b
+    litellm_params:
+      model: ollama_chat/qwen3.5:4b
+      api_base: http://crush:11434
+
+  - model_name: deepseek-r1:7b
+    litellm_params:
+      model: ollama_chat/deepseek-r1:7b
+      api_base: http://crush:11434
+
+  # ── Tool-format challengers (being tested via LiteLLM translation) ──────────
+  - model_name: mistral:7b
+    litellm_params:
+      model: ollama_chat/mistral:7b
+      api_base: http://crush:11434
+
+  - model_name: command-r7b
+    litellm_params:
+      model: ollama_chat/command-r7b
+      api_base: http://crush:11434
+
+  # ── Large-tier (desktop-only, 16 GB+ RAM) ───────────────────────────────────
+  - model_name: qwen3.5:14b
+    litellm_params:
+      model: ollama_chat/qwen3.5:14b
+      api_base: http://crush:11434
+
+  - model_name: deepseek-r1:14b
+    litellm_params:
+      model: ollama_chat/deepseek-r1:14b
+      api_base: http://crush:11434
+
+  - model_name: phi-4:14b
+    litellm_params:
+      model: ollama_chat/phi-4:14b
+      api_base: http://crush:11434
+
+litellm_settings:
+  # Drop unsupported params (e.g. thinking tokens, custom stop sequences)
+  # rather than erroring — keeps older models working cleanly.
+  drop_params: true
+  # Add request_timeout so slow model loads don't hang indefinitely
+  request_timeout: 360
+
+general_settings:
+  # Expose a simple /health endpoint
+  health_check_interval: 30

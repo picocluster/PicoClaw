@@ -23,12 +23,10 @@ services:
       - "127.0.0.1:8000:8000"
     environment:
       - LLM_PROVIDER=local
-      - LOCAL_BASE_URL=http://crush:11434/v1
+      - LOCAL_BASE_URL=http://litellm:4000/v1
       - LOCAL_MODEL=${DEFAULT_MODEL:-qwen3.5:4b}
       - LED_API_URL=http://host.docker.internal:7777
     extra_hosts:
-      - "crush:${CRUSH_IP:-10.1.10.221}"
-      - "clustercrush:${CRUSH_IP:-10.1.10.221}"
       - "host.docker.internal:host-gateway"
     volumes:
       - ./leds/mcp_server.py:/opt/mcp/led_server.py:ro
@@ -40,6 +38,25 @@ services:
       timeout: 5s
       retries: 3
 
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: litellm
+    restart: always
+    ports:
+      - "127.0.0.1:4000:4000"
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "1"]
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+    extra_hosts:
+      - "crush:${CRUSH_IP:-10.1.10.221}"
+      - "clustercrush:${CRUSH_IP:-10.1.10.221}"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:4000/health/liveliness"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   openclaw:
     build: ./openclaw
     container_name: openclaw
@@ -48,11 +65,11 @@ services:
       - "127.0.0.1:18789:18789"
     environment:
       - OPENCLAW_TOKEN=${OPENCLAW_TOKEN:-picocluster-token}
-      - LOCAL_BASE_URL=http://crush:11434/v1
+      - LOCAL_BASE_URL=http://litellm:4000/v1
       - LOCAL_MODEL=${OPENCLAW_MODEL:-granite4.1:8b}
-    extra_hosts:
-      - "crush:${CRUSH_IP:-10.1.10.221}"
-      - "clustercrush:${CRUSH_IP:-10.1.10.221}"
+    depends_on:
+      litellm:
+        condition: service_healthy
     volumes:
       - openclaw-data:/home/openclaw/.openclaw
       - /home/picocluster/claw-files/openclaw:/home/openclaw/files
