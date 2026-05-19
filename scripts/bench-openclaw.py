@@ -524,7 +524,7 @@ def main():
 
         # ── Pre-warm: load model into Ollama before timing any tests ──────────
         print(f"  Loading {model}...", flush=True)
-        loaded, load_s = preload_model(ollama_url, model, timeout=180)
+        loaded, load_s = preload_model(ollama_url, model)  # uses default 300s
         active = current_ollama_model(ollama_url)
         if loaded:
             print(f"  {model} ready in {load_s:.0f}s  (Ollama reports: {active})", flush=True)
