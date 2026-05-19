@@ -188,16 +188,23 @@ mkdir -p /home/openclaw/files
 cp /usr/local/share/openclaw/SOUL.md /home/openclaw/files/SOUL.md 2>/dev/null || true
 cp /usr/local/share/openclaw/AGENTS.md /home/openclaw/files/AGENTS.md 2>/dev/null || true
 
-# Remove empty placeholder files that OpenClaw creates on first run.
-# They contain only template instructions with no actual data, so injecting
-# them wastes ~2.5k chars of context per request.
-# We only delete them if they are small (< 200 bytes of actual content),
-# which means the user hasn't filled them in yet.
-for stub in TOOLS.md IDENTITY.md USER.md HEARTBEAT.md; do
-  f="/home/openclaw/files/$stub"
-  if [ -f "$f" ] && [ "$(wc -c < "$f")" -lt 200 ]; then
-    rm -f "$f"
+# Pre-seed placeholder workspace files with minimal stubs BEFORE openclaw
+# gateway starts. OpenClaw only creates these if they don't exist, so seeding
+# them first prevents it from writing the full 500-900 char boilerplate
+# templates that burn context on every request.
+#
+# If a file is already large (user filled it in), leave it alone.
+# Files under 200 bytes are treated as empty/stub and overwritten.
+_stub() {
+  local f="/home/openclaw/files/$1"
+  local content="$2"
+  if [ ! -f "$f" ] || [ "$(wc -c < "$f")" -lt 200 ]; then
+    printf '%s\n' "$content" > "$f"
   fi
-done
+}
+_stub TOOLS.md    "# TOOLS.md — add SSH hosts, device names, API endpoints as needed"
+_stub IDENTITY.md "# IDENTITY.md — Claw, PicoCluster AI assistant 🦞"
+_stub USER.md     "# USER.md — add user context as needed"
+_stub HEARTBEAT.md "# HEARTBEAT.md — empty = skip periodic checks"
 
 exec openclaw gateway --port 18789
