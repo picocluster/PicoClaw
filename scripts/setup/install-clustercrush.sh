@@ -184,10 +184,14 @@ fi
 
 # Ollama systemd override:
 #   OLLAMA_HOST           — listen on all interfaces so clusterclaw can reach it
-#   OLLAMA_KEEP_ALIVE     — keep loaded models in GPU memory for 1h after last request;
-#                           the warmup service pins the default model at boot so first-
-#                           request lag is eliminated, and this window covers a typical
-#                           session with pauses between messages
+#   OLLAMA_KEEP_ALIVE     — how long to keep a model in VRAM after the last request.
+#                           30m is a good balance: long enough to cover pauses in a
+#                           conversation, short enough that models don't stay resident
+#                           for hours and starve the next model load. The warmup
+#                           service below loads the default model at boot with an
+#                           explicit keep_alive=1h so first-request lag is zero.
+#                           Do NOT set this to 0 — that unloads after every single
+#                           inference call, forcing a ~90s reload on each message.
 #   OLLAMA_KV_CACHE_TYPE  — q8_0 quantized KV cache reduces VRAM usage on 8GB Orin Nano
 #                           without meaningful quality loss; helps fit 4B models in
 #                           unified memory alongside system processes
@@ -197,7 +201,7 @@ mkdir -p /etc/systemd/system/ollama.service.d
 cat > /etc/systemd/system/ollama.service.d/override.conf <<EOF
 [Service]
 Environment="OLLAMA_HOST=0.0.0.0:${OLLAMA_PORT}"
-Environment="OLLAMA_KEEP_ALIVE=1h"
+Environment="OLLAMA_KEEP_ALIVE=30m"
 Environment="OLLAMA_KV_CACHE_TYPE=q8_0"
 EOF
 
@@ -321,10 +325,90 @@ log "MAXN power mode set and persisted"
 # ============================================================
 # 6. Firewall
 # ============================================================
-log "--- Step 6/6: Firewall ---"
+log "--- Step 6/7: Firewall ---"
 ufw allow from "${CLAW_IP}" to any port "${OLLAMA_PORT}" \
   comment "Ollama from clusterclaw" 2>/dev/null || true
 log "Firewall: port ${OLLAMA_PORT} open for ${CLAW_IP} only"
+
+# ============================================================
+# 7. Headless-server hardening (dedicated Ollama node)
+# ============================================================
+log "--- Step 7/7: Headless service cleanup ---"
+
+# Disable services not needed on a dedicated GPU inference node.
+# These are safe to remove on a headless, wired-ethernet-only machine.
+DISABLE_SERVICES=(
+  fail2ban            # SSH brute-force protection (overkill for LAN-only node)
+  ModemManager        # Cellular modem management — no modem present
+  rpcbind             # NFS/RPC — not needed
+  seatd               # Seat manager for desktop sessions
+  haveged             # Extra entropy daemon — kernel provides enough
+  nvargus-daemon      # Jetson camera/argus daemon — no camera attached
+  nvweston            # Wayland compositor — headless, no display
+  nvfb                # Framebuffer — headless
+  nvfb-early          # Framebuffer early init — headless
+  nvfb-udev           # Framebuffer udev — headless
+  nvgetty             # Nvidia getty — headless
+  unattended-upgrades # Auto-updates can interrupt model loads at bad times
+  wpa_supplicant      # WiFi — ethernet-only node
+)
+for svc in "${DISABLE_SERVICES[@]}"; do
+  if systemctl list-unit-files "${svc}.service" &>/dev/null 2>&1 | grep -q "$svc"; then
+    systemctl disable --now "$svc" 2>/dev/null || true
+  fi
+done
+
+# Disable socket activators that could re-wake stopped services
+systemctl disable --now docker.socket rpcbind.socket 2>/dev/null || true
+
+# Ensure Docker is not running on crush — it should run only on clusterclaw.
+# If Docker/containerd is running (e.g. someone ran compose here by mistake), stop it.
+if systemctl is-active --quiet docker 2>/dev/null; then
+  log "  Stopping Docker (should not run on clustercrush)"
+  systemctl disable --now docker containerd 2>/dev/null || true
+fi
+
+# Purge development packages and profiling tools not needed for inference.
+# These can consume several GB of disk on a freshly flashed Jetson image.
+DEV_PACKAGES=(
+  nsight-compute-2024.3.1
+  libcudnn9-static-cuda-12
+  libcublas-dev-12-6
+  libcufft-dev-12-6
+  libnvinfer-dev
+  libcusparse-dev-12-6
+  libnpp-dev-12-6
+  libnpp-12-6
+  qemu-efi-aarch64
+)
+INSTALLED_DEV=()
+for pkg in "${DEV_PACKAGES[@]}"; do
+  dpkg -l "$pkg" &>/dev/null 2>&1 && INSTALLED_DEV+=("$pkg")
+done
+if (( ${#INSTALLED_DEV[@]} > 0 )); then
+  log "  Purging dev/profiling packages: ${INSTALLED_DEV[*]}"
+  apt-get purge -y "${INSTALLED_DEV[@]}" 2>&1 | tail -3
+  apt-get autoremove -y 2>&1 | tail -3
+  apt-get clean
+fi
+
+# Purge local APT repo meta-packages (large but are just repo configs, not libs)
+REPO_PACKAGES=(
+  l4t-cuda-tegra-repo-ubuntu2204-12-6-local
+  cudnn-local-tegra-repo-ubuntu2204-9.3.0
+  nv-tensorrt-local-tegra-repo-ubuntu2204-10.3.0-cuda-12.5
+)
+INSTALLED_REPO=()
+for pkg in "${REPO_PACKAGES[@]}"; do
+  dpkg -l "$pkg" &>/dev/null 2>&1 && INSTALLED_REPO+=("$pkg")
+done
+if (( ${#INSTALLED_REPO[@]} > 0 )); then
+  log "  Purging repo meta-packages: ${INSTALLED_REPO[*]}"
+  apt-get purge -y "${INSTALLED_REPO[@]}" 2>&1 | tail -2
+  apt-get clean
+fi
+
+log "Headless cleanup complete — dedicated Ollama inference node"
 
 # ============================================================
 # User management scripts
