@@ -41,17 +41,6 @@ model_list:
       model: ollama_chat/deepseek-r1:7b
       api_base: http://crush:11434
 
-  # ── Tool-format challengers (being tested via LiteLLM translation) ──────────
-  - model_name: mistral:7b
-    litellm_params:
-      model: ollama_chat/mistral:7b
-      api_base: http://crush:11434
-
-  - model_name: command-r7b
-    litellm_params:
-      model: ollama_chat/command-r7b
-      api_base: http://crush:11434
-
   # ── Large-tier (desktop-only, 16 GB+ RAM) ───────────────────────────────────
   - model_name: qwen3.5:14b
     litellm_params:
