@@ -205,18 +205,20 @@ TESTS = [
     {
         "id": "t4-summary",
         "tier": 4,
-        "name": "Read + summarise",
+        "name": "Read, list, summarise",
         "mode": "agent",
         "prompt": (
-            "Read SOUL.md and TOOLS.md from your workspace. "
-            "Write a one-sentence summary that mentions both files by name "
-            "into a file called bench-summary.txt. "
-            "Then tell me what you wrote."
+            "Do these steps:\n"
+            "1. Read SOUL.md from your workspace.\n"
+            "2. List all files in your workspace.\n"
+            "3. Write a one-sentence summary into bench-summary.txt that "
+            "mentions the name from SOUL.md and how many files are in the workspace.\n"
+            "4. Tell me what you wrote."
         ),
         "check": lambda text, meta: (
             _tool_calls(meta) >= 3 and
-            "bench-summary.txt" in text.lower() or
-            ("soul" in text.lower() and "tool" in text.lower())
+            "bench-summary.txt" in text.lower() and
+            "claw" in text.lower()
         ),
         "timeout": 180,
         "cleanup": [f"{WORKSPACE}/bench-summary.txt"],
