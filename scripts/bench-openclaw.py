@@ -97,7 +97,7 @@ TESTS = [
         "name": "List workspace files",
         "mode": "agent",
         "prompt": (
-            "Use your directory listing tool to list the files in your workspace. "
+            "Use the dir_list tool to list the files in your workspace directory. "
             "Then tell me exactly how many files are present."
         ),
         "check": lambda text, meta: (
@@ -209,8 +209,8 @@ TESTS = [
         "mode": "agent",
         "prompt": (
             "Do these steps in order:\n"
-            "1. Use your file-reading tool to read SOUL.md from your workspace.\n"
-            "2. Use your file-writing tool to write a one-sentence summary "
+            "1. Use the file_fetch tool to read SOUL.md from your workspace.\n"
+            "2. Use the file_write tool to write a one-sentence summary "
             "into bench-summary.txt. The sentence must include the name that "
             "appears on the first line of SOUL.md.\n"
             "3. Tell me what you wrote."
