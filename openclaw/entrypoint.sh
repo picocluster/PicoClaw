@@ -195,16 +195,17 @@ cp /usr/local/share/openclaw/AGENTS.md /home/openclaw/files/AGENTS.md 2>/dev/nul
 #
 # If a file is already large (user filled it in), leave it alone.
 # Files under 200 bytes are treated as empty/stub and overwritten.
-_stub() {
-  local f="/home/openclaw/files/$1"
-  local content="$2"
-  if [ ! -f "$f" ] || [ "$(wc -c < "$f")" -lt 200 ]; then
-    printf '%s\n' "$content" > "$f"
-  fi
-}
-_stub TOOLS.md    "# TOOLS.md — add SSH hosts, device names, API endpoints as needed"
-_stub IDENTITY.md "# IDENTITY.md — Claw, PicoCluster AI assistant 🦞"
-_stub USER.md     "# USER.md — add user context as needed"
-_stub HEARTBEAT.md "# HEARTBEAT.md — empty = skip periodic checks"
+# Always write minimal stubs for the placeholder files — OpenClaw respects
+# existing files so these won't be overwritten by the gateway after startup.
+# Users who need these files can edit them; the stubs are intentionally tiny
+# to minimise injected context on every request.
+printf '# TOOLS.md — add SSH hosts, device names, API endpoints as needed\n' \
+  > /home/openclaw/files/TOOLS.md
+printf '# IDENTITY.md — Claw, PicoCluster AI assistant 🦞\n' \
+  > /home/openclaw/files/IDENTITY.md
+printf '# USER.md — add user context as needed\n' \
+  > /home/openclaw/files/USER.md
+printf '# HEARTBEAT.md — empty = skip periodic checks\n' \
+  > /home/openclaw/files/HEARTBEAT.md
 
 exec openclaw gateway --port 18789
