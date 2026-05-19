@@ -256,15 +256,34 @@ def _cleanup(paths):
 
 # ── Runners ───────────────────────────────────────────────────────────────────
 
-def preload_model(base_url, model_id, timeout=180):
+def preload_model(base_url, model_id, timeout=300):
     """
     Warm the model by sending a trivial generate directly to Ollama.
+    First evicts any currently-loaded model so the swap starts clean.
     Bypasses the OpenClaw gateway so we can use a long timeout without
     affecting the benchmark clock.
     Returns (True, elapsed_s) on success, (False, elapsed_s) on failure.
     """
     import urllib.request, urllib.error
     root = base_url.split("/v1")[0].rstrip("/")
+
+    # Evict whatever is currently loaded before requesting the new model.
+    # This prevents cascading failures where a timed-out load poisons the next.
+    try:
+        with urllib.request.urlopen(f"{root}/api/ps", timeout=5) as r:
+            ps = json.loads(r.read())
+        for m in ps.get("models", []):
+            if m["name"] != model_id:
+                payload = json.dumps({"model": m["name"], "keep_alive": 0}).encode()
+                req = urllib.request.Request(
+                    f"{root}/api/generate", data=payload,
+                    headers={"Content-Type": "application/json"},
+                )
+                with urllib.request.urlopen(req, timeout=15) as r2:
+                    r2.read()
+    except Exception:
+        pass  # best-effort; proceed regardless
+
     url = f"{root}/api/generate"
     payload = json.dumps({"model": model_id, "prompt": "hi", "stream": False}).encode()
     req = urllib.request.Request(
