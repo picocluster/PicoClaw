@@ -67,6 +67,9 @@ services:
       - OPENCLAW_TOKEN=${OPENCLAW_TOKEN:-picocluster-token}
       - LOCAL_BASE_URL=http://litellm:4000/v1
       - LOCAL_MODEL=${OPENCLAW_MODEL:-granite4.1:8b}
+    extra_hosts:
+      - "crush:${CRUSH_IP:-10.1.10.221}"
+      - "clustercrush:${CRUSH_IP:-10.1.10.221}"
     depends_on:
       litellm:
         condition: service_healthy
