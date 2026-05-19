@@ -68,7 +68,9 @@ cat > "$CONFIG" <<EOF
           "deny": [
             "sessions_list", "session_status", "sessions_history",
             "sessions_spawn", "sessions_yield", "subagents",
-            "nodes", "device_pair", "canvas"
+            "nodes", "device_pair", "canvas",
+            "cron", "browser", "message", "process",
+            "gateway", "tts", "memory_search", "memory_get", "sessions_send"
           ]
         }
       },
@@ -88,7 +90,9 @@ cat > "$CONFIG" <<EOF
           "deny": [
             "sessions_list", "session_status", "sessions_history",
             "sessions_spawn", "sessions_yield", "subagents",
-            "nodes", "device_pair", "canvas"
+            "nodes", "device_pair", "canvas",
+            "cron", "browser", "message", "process",
+            "gateway", "tts", "memory_search", "memory_get", "sessions_send"
           ]
         }
       }
@@ -132,8 +136,24 @@ else
        --argjson cp "$CHAT_PROMPT_JSON" \
        '.gateway.auth.token = $t |
         .agents.list = (.agents.list | map(
-          if .id == "main" then .systemPromptOverride = $mp
-          elif .id == "chat" then .systemPromptOverride = $cp
+          if .id == "main" then
+            .systemPromptOverride = $mp |
+            .tools.deny = [
+              "sessions_list","session_status","sessions_history",
+              "sessions_spawn","sessions_yield","subagents",
+              "nodes","device_pair","canvas",
+              "cron","browser","message","process",
+              "gateway","tts","memory_search","memory_get","sessions_send"
+            ]
+          elif .id == "chat" then
+            .systemPromptOverride = $cp |
+            .tools.deny = [
+              "sessions_list","session_status","sessions_history",
+              "sessions_spawn","sessions_yield","subagents",
+              "nodes","device_pair","canvas",
+              "cron","browser","message","process",
+              "gateway","tts","memory_search","memory_get","sessions_send"
+            ]
           else . end
         )) |
         .models.providers.local.baseUrl = $base_url |
@@ -154,9 +174,33 @@ else
   fi
 fi
 
-# Deploy SOUL.md to workspace so OpenClaw injects it into every session.
-# Copies on every start so updates to the image are reflected automatically.
+# Deploy workspace context files on every start so image updates are reflected.
+#
+# Context budget rationale — smaller models (4-8B) have ~8k effective context.
+# We aggressively trim injected files and deny heavy tool schemas to keep the
+# per-request context under ~8k chars, leaving headroom for conversation history.
+#
+# AGENTS.md: custom lean version (≈700 chars vs 7.7k default boilerplate)
+# SOUL.md:   PicoCluster identity (≈800 chars, kept as-is)
+# Others:    placeholder files (TOOLS.md, IDENTITY.md, USER.md, HEARTBEAT.md)
+#            are deleted if empty/default — they burn context for zero value.
 mkdir -p /home/openclaw/files
 cp /usr/local/share/openclaw/SOUL.md /home/openclaw/files/SOUL.md 2>/dev/null || true
+cp /usr/local/share/openclaw/AGENTS.md /home/openclaw/files/AGENTS.md 2>/dev/null || true
+
+# Remove empty placeholder files that OpenClaw creates on first run.
+# They contain only template instructions with no actual data, so injecting
+# them wastes ~2.5k chars of context. Remove only if they are unmodified stubs
+# (i.e. the user hasn't filled them in yet — detected by absence of real data).
+for stub in TOOLS.md IDENTITY.md USER.md HEARTBEAT.md; do
+  f="/home/openclaw/files/$stub"
+  if [ -f "$f" ]; then
+    # If the file has no non-comment, non-empty, non-template content, remove it.
+    real_lines=$(grep -v '^\s*#\|^\s*_\|^\s*-\s*\*\*\|^\s*$\|^```' "$f" | wc -l)
+    if [ "$real_lines" -lt 2 ]; then
+      rm -f "$f"
+    fi
+  fi
+done
 
 exec openclaw gateway --port 18789

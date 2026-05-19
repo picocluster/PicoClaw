@@ -30,6 +30,7 @@ RUN mkdir -p /home/openclaw/.openclaw
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY SOUL.md /usr/local/share/openclaw/SOUL.md
+COPY AGENTS.md /usr/local/share/openclaw/AGENTS.md
 
 EXPOSE 18789
 
