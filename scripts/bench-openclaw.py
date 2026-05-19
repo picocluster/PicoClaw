@@ -397,6 +397,30 @@ def check_ollama(base_url):
         return False, str(e)
 
 
+def evict_loaded_models(base_url):
+    """Evict any model currently resident in Ollama to free VRAM before benchmarking."""
+    import urllib.request
+    root = base_url.split("/v1")[0].rstrip("/")
+    try:
+        with urllib.request.urlopen(f"{root}/api/ps", timeout=5) as r:
+            data = json.loads(r.read())
+            loaded = [m["name"] for m in data.get("models", [])]
+    except Exception:
+        return
+    for model_name in loaded:
+        try:
+            payload = json.dumps({"model": model_name, "keep_alive": 0}).encode()
+            req = urllib.request.Request(
+                f"{root}/api/generate", data=payload,
+                headers={"Content-Type": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=15) as r:
+                r.read()
+            print(c("33", f"  evicted {model_name} from VRAM"), flush=True)
+        except Exception as e:
+            print(c("33", f"  could not evict {model_name}: {e}"), flush=True)
+
+
 def get_ollama_base_url():
     """Read baseUrl from openclaw config."""
     import subprocess
@@ -433,6 +457,7 @@ def main():
     ok, msg = check_ollama(ollama_url)
     if ok:
         print(c("32", f"✓ Ollama reachable ({msg}) at {ollama_url}"))
+        evict_loaded_models(ollama_url)
     else:
         print(c("31", f"✗ Ollama unreachable at {ollama_url}: {msg}"))
         print(c("31", "  Aborting — fix Ollama before running the benchmark."))
