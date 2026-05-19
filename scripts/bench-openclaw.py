@@ -256,6 +256,42 @@ def _cleanup(paths):
 
 # ── Runners ───────────────────────────────────────────────────────────────────
 
+def preload_model(base_url, model_id, timeout=180):
+    """
+    Warm the model by sending a trivial generate directly to Ollama.
+    Bypasses the OpenClaw gateway so we can use a long timeout without
+    affecting the benchmark clock.
+    Returns (True, elapsed_s) on success, (False, elapsed_s) on failure.
+    """
+    import urllib.request, urllib.error
+    root = base_url.split("/v1")[0].rstrip("/")
+    url = f"{root}/api/generate"
+    payload = json.dumps({"model": model_id, "prompt": "hi", "stream": False}).encode()
+    req = urllib.request.Request(
+        url, data=payload, headers={"Content-Type": "application/json"}
+    )
+    t0 = time.monotonic()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            r.read()
+            return True, time.monotonic() - t0
+    except Exception:
+        return False, time.monotonic() - t0
+
+
+def current_ollama_model(base_url):
+    """Return the model name currently loaded in Ollama (via /api/ps), or None."""
+    import urllib.request
+    root = base_url.split("/v1")[0].rstrip("/")
+    try:
+        with urllib.request.urlopen(f"{root}/api/ps", timeout=5) as r:
+            data = json.loads(r.read())
+            models = data.get("models", [])
+            return models[0]["name"] if models else None
+    except Exception:
+        return None
+
+
 def run_infer(model, prompt, timeout=60):
     """Raw inference via openclaw infer model run --gateway."""
     t0 = time.monotonic()
@@ -334,10 +370,11 @@ def c(code, text):
     return f"\033[{code}m{text}\033[0m" if ANSI else text
 
 def status_cell(s):
-    if s == "PASS":    return c("32", "PASS")
-    if s == "FAIL":    return c("31", "FAIL")
-    if s == "SKIP":    return c("33", "SKIP")
-    if s == "TIMEOUT": return c("33", "TIME")
+    if s == "PASS":      return c("32", "PASS")
+    if s == "FAIL":      return c("31", "FAIL")
+    if s == "SKIP":      return c("33", "SKIP")
+    if s == "TIMEOUT":   return c("33", "TIME")
+    if s == "LOAD_FAIL": return c("35", "LOAD")
     return c("31", "ERR ")
 
 
@@ -439,10 +476,37 @@ def main():
 
     for model in models:
         all_results["runs"][model] = {}
+        no_tools = model in NO_TOOLS_MODELS
+
+        # ── Pre-warm: load model into Ollama before timing any tests ──────────
+        print(f"  Loading {model}...", flush=True)
+        loaded, load_s = preload_model(ollama_url, model, timeout=180)
+        active = current_ollama_model(ollama_url)
+        if loaded:
+            print(f"  {model} ready in {load_s:.0f}s  (Ollama reports: {active})", flush=True)
+        else:
+            print(
+                c("31", f"  {model} failed to load in {load_s:.0f}s — skipping all tests"),
+                flush=True,
+            )
+            row = f"{model:<{M_W}}"
+            for test in tests:
+                row += f"  {'LOAD':>{T_W}}"
+            row += f"  0/{len(tests)}  {'':>8}"
+            print(row, flush=True)
+            for test in tests:
+                all_results["runs"][model][test["id"]] = {
+                    "status": "LOAD_FAIL",
+                    "ms": int(load_s * 1000),
+                    "reply": "", "tools": None,
+                    "input_tokens": None, "output_tokens": None,
+                    "error": "model failed to load within 180s",
+                }
+            continue
+
         row = f"{model:<{M_W}}"
         passes = 0
         durations = []
-        no_tools = model in NO_TOOLS_MODELS
 
         for test in tests:
             tid = test["id"]
