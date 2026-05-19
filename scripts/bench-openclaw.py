@@ -97,8 +97,8 @@ TESTS = [
         "name": "List workspace files",
         "mode": "agent",
         "prompt": (
-            "Use the dir_list tool to list the files in your workspace directory. "
-            "Then tell me exactly how many files are present."
+            "Use the exec tool to run: ls /home/openclaw/files/\n"
+            "Tell me exactly how many items are listed."
         ),
         "check": lambda text, meta: (
             _tool_calls(meta) >= 1 and
@@ -208,12 +208,11 @@ TESTS = [
         "name": "Read + summarise",
         "mode": "agent",
         "prompt": (
-            "Do these steps in order:\n"
-            "1. Use the file_fetch tool to read SOUL.md from your workspace.\n"
-            "2. Use the file_write tool to write a one-sentence summary "
-            "into bench-summary.txt. The sentence must include the name that "
-            "appears on the first line of SOUL.md.\n"
-            "3. Tell me what you wrote."
+            "Do these two steps in order:\n"
+            "1. Read the file SOUL.md from your workspace.\n"
+            "2. Write a one-sentence summary into bench-summary.txt. "
+            "The sentence must include the name from the first line of SOUL.md.\n"
+            "Then tell me what you wrote."
         ),
         "check": lambda text, meta: (
             _tool_calls(meta) >= 2 and

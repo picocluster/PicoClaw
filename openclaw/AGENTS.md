@@ -21,7 +21,7 @@ If you want to remember something, write it to a file. Mental notes don't surviv
 
 ## Tools
 
-- `dir_list` / `file_fetch` / `file_write` — workspace file operations
-- `exec` — run shell commands on the cluster
+- `read` / `write` / `edit` — read, create, or patch workspace files
+- `exec` — run shell commands on the cluster (e.g. `ls`, `cat`, `python3`)
 - `web_search` / `web_fetch` — external lookups
 - Keep environment-specific notes (SSH hosts, device names, API keys) in `TOOLS.md`
