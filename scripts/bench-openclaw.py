@@ -341,6 +341,41 @@ def status_cell(s):
     return c("31", "ERR ")
 
 
+# ── Pre-flight ────────────────────────────────────────────────────────────────
+
+def check_ollama(base_url):
+    """Return (ok, message). Hits /api/tags to verify Ollama is reachable."""
+    import urllib.request, urllib.error
+    # base_url is like http://host:port/v1 — strip to http://host:port
+    root = base_url.split("/v1")[0].rstrip("/")
+    url = f"{root}/api/tags"
+    try:
+        with urllib.request.urlopen(url, timeout=10) as r:
+            data = json.loads(r.read())
+            models = [m["name"] for m in data.get("models", [])]
+            return True, f"{len(models)} models loaded"
+    except urllib.error.URLError as e:
+        return False, str(e)
+    except Exception as e:
+        return False, str(e)
+
+
+def get_ollama_base_url():
+    """Read baseUrl from openclaw config."""
+    import subprocess
+    try:
+        r = subprocess.run(
+            ["openclaw", "config", "get", "models.providers.local.baseUrl"],
+            capture_output=True, text=True, timeout=5,
+        )
+        url = r.stdout.strip()
+        if url.startswith("http"):
+            return url
+    except Exception:
+        pass
+    return "http://localhost:11434/v1"
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -355,6 +390,16 @@ def main():
     )
     parser.add_argument("--no-cleanup", action="store_true", help="Leave test files on disk")
     args = parser.parse_args()
+
+    # ── Pre-flight: verify Ollama is reachable ────────────────────────────────
+    ollama_url = get_ollama_base_url()
+    ok, msg = check_ollama(ollama_url)
+    if ok:
+        print(c("32", f"✓ Ollama reachable ({msg}) at {ollama_url}"))
+    else:
+        print(c("31", f"✗ Ollama unreachable at {ollama_url}: {msg}"))
+        print(c("31", "  Aborting — fix Ollama before running the benchmark."))
+        sys.exit(1)
 
     models = [m.strip() for m in args.models.split(",")] if args.models else ALL_MODELS
     if args.quick:
