@@ -190,16 +190,13 @@ cp /usr/local/share/openclaw/AGENTS.md /home/openclaw/files/AGENTS.md 2>/dev/nul
 
 # Remove empty placeholder files that OpenClaw creates on first run.
 # They contain only template instructions with no actual data, so injecting
-# them wastes ~2.5k chars of context. Remove only if they are unmodified stubs
-# (i.e. the user hasn't filled them in yet — detected by absence of real data).
+# them wastes ~2.5k chars of context per request.
+# We only delete them if they are small (< 200 bytes of actual content),
+# which means the user hasn't filled them in yet.
 for stub in TOOLS.md IDENTITY.md USER.md HEARTBEAT.md; do
   f="/home/openclaw/files/$stub"
-  if [ -f "$f" ]; then
-    # If the file has no non-comment, non-empty, non-template content, remove it.
-    real_lines=$(grep -v '^\s*#\|^\s*_\|^\s*-\s*\*\*\|^\s*$\|^```' "$f" | wc -l)
-    if [ "$real_lines" -lt 2 ]; then
-      rm -f "$f"
-    fi
+  if [ -f "$f" ] && [ "$(wc -c < "$f")" -lt 200 ]; then
+    rm -f "$f"
   fi
 done
 
