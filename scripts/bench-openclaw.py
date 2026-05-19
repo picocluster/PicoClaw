@@ -97,8 +97,8 @@ TESTS = [
         "name": "List workspace files",
         "mode": "agent",
         "prompt": (
-            "List the files in your workspace directory and tell me "
-            "exactly how many files are present."
+            "Use your directory listing tool to list the files in your workspace. "
+            "Then tell me exactly how many files are present."
         ),
         "check": lambda text, meta: (
             _tool_calls(meta) >= 1 and
@@ -205,20 +205,21 @@ TESTS = [
     {
         "id": "t4-summary",
         "tier": 4,
-        "name": "Read, list, summarise",
+        "name": "Read + summarise",
         "mode": "agent",
         "prompt": (
-            "Do these steps:\n"
-            "1. Read SOUL.md from your workspace.\n"
-            "2. List all files in your workspace.\n"
-            "3. Write a one-sentence summary into bench-summary.txt that "
-            "mentions the name from SOUL.md and how many files are in the workspace.\n"
-            "4. Tell me what you wrote."
+            "Do these steps in order:\n"
+            "1. Use your file-reading tool to read SOUL.md from your workspace.\n"
+            "2. Use your file-writing tool to write a one-sentence summary "
+            "into bench-summary.txt. The sentence must include the name that "
+            "appears on the first line of SOUL.md.\n"
+            "3. Tell me what you wrote."
         ),
         "check": lambda text, meta: (
-            _tool_calls(meta) >= 3 and
+            _tool_calls(meta) >= 2 and
             "bench-summary.txt" in text.lower() and
-            "claw" in text.lower()
+            "claw" in text.lower() and
+            _verify_file(f"{WORKSPACE}/bench-summary.txt", "")
         ),
         "timeout": 180,
         "cleanup": [f"{WORKSPACE}/bench-summary.txt"],
