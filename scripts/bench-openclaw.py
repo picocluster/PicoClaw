@@ -471,10 +471,15 @@ def main():
         help="Where to write JSON results",
     )
     parser.add_argument("--no-cleanup", action="store_true", help="Leave test files on disk")
+    parser.add_argument(
+        "--ollama-url",
+        default=None,
+        help="Override Ollama base URL (e.g. http://crush:11434/v1); defaults to openclaw config",
+    )
     args = parser.parse_args()
 
     # ── Pre-flight: verify Ollama is reachable ────────────────────────────────
-    ollama_url = get_ollama_base_url()
+    ollama_url = args.ollama_url if args.ollama_url else get_ollama_base_url()
     ok, msg = check_ollama(ollama_url)
     if ok:
         print(c("32", f"✓ Ollama reachable ({msg}) at {ollama_url}"))
