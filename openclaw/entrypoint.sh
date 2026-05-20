@@ -108,14 +108,8 @@ cat > "$CONFIG" <<EOF
         },
         "models": [
           {"id": "granite4.1:8b",      "name": "Granite 4.1 8B"},
-          {"id": "nemotron-3-nano:4b", "name": "Nemotron 3 Nano 4B"},
-          {"id": "llama3.1:8b",        "name": "Llama 3.1 8B"},
-          {"id": "llama3.2:3b",        "name": "Llama 3.2 3B"},
           {"id": "qwen3.5:4b",         "name": "Qwen 3.5 4B"},
-          {"id": "deepseek-r1:7b",     "name": "DeepSeek R1 7B"},
-          {"id": "qwen3.5:14b",        "name": "Qwen 3.5 14B (large tier — 16 GB+ desktop only)"},
-          {"id": "deepseek-r1:14b",    "name": "DeepSeek R1 14B (large tier — 16 GB+ desktop only)"},
-          {"id": "phi-4:14b",          "name": "Phi-4 14B (large tier — 16 GB+ desktop only)"}
+          {"id": "nemotron-3-nano:4b", "name": "Nemotron 3 Nano 4B"}
         ]
       }
     }
@@ -160,14 +154,8 @@ else
         .models.providers.local.request.allowPrivateNetwork = true |
         .models.providers.local.models = [
           {"id": "granite4.1:8b",      "name": "Granite 4.1 8B"},
-          {"id": "nemotron-3-nano:4b", "name": "Nemotron 3 Nano 4B"},
-          {"id": "llama3.1:8b",        "name": "Llama 3.1 8B"},
-          {"id": "llama3.2:3b",        "name": "Llama 3.2 3B"},
           {"id": "qwen3.5:4b",         "name": "Qwen 3.5 4B"},
-          {"id": "deepseek-r1:7b",     "name": "DeepSeek R1 7B"},
-          {"id": "qwen3.5:14b",        "name": "Qwen 3.5 14B (large tier — 16 GB+ desktop only)"},
-          {"id": "deepseek-r1:14b",    "name": "DeepSeek R1 14B (large tier — 16 GB+ desktop only)"},
-          {"id": "phi-4:14b",          "name": "Phi-4 14B (large tier — 16 GB+ desktop only)"}
+          {"id": "nemotron-3-nano:4b", "name": "Nemotron 3 Nano 4B"}
         ]' \
        "$CONFIG" > "$tmp" && mv "$tmp" "$CONFIG"
     chmod 600 "$CONFIG"
