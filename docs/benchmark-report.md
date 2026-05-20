@@ -356,3 +356,51 @@ US average electricity: $0.16/kWh. PSU: 50W (15W headroom at peak).
 - Orin out-of-case benchmarks: `/mnt/nvme/results/` on clustercrush
 - Orin in-case benchmarks: `/home/picocluster/results-incase/` on clustercrush
 - RPi5 benchmarks: `/home/picocluster/results/` on clusterclaw
+
+---
+
+## OpenClaw Agent Benchmark
+
+**Date:** 2026-05-19  
+**Hardware:** Jetson Orin Nano Super 8GB (MAXN, Ollama CUDA)  
+**Gateway:** OpenClaw 2026.5.12 via LiteLLM proxy  
+**Context:** ~9,250 chars per request (optimized lean profile for local models)
+
+The OpenClaw benchmark measures real agent capability across four tiers of increasing complexity — raw inference through multi-step tool chaining — using the live gateway, not a raw API.
+
+| Tier | Tests | What it measures |
+|---|---|---|
+| T1 | ping, math, JSON | Raw inference, instruction following |
+| T2 | list files, read, write | Single tool call with verification |
+| T3 | write→read chain, compute→write | Multi-step tool chaining |
+| T4 | write→edit→verify, read→summarize→write | Harder reasoning + tool use |
+
+### Results (10 tasks, all tiers)
+
+| Model | T1 | T2 | T3 | T4 | Score | Avg latency |
+|---|:---:|:---:|:---:|:---:|:---:|---:|
+| **granite4.1:8b** | 3/3 | 3/3 | 2/2 | 2/2 | **10/10** | 16,761 ms |
+| qwen3.5:4b | 2/3 | 3/3 | 2/2 | 1/2 | **8/10** | 45,824 ms |
+| nemotron-3-nano:4b | 3/3 | 2/3 | 1/2 | 0/2 | **6/10** | 43,067 ms |
+| llama3.2:3b | 3/3 | 1/3 | 0/2 | 0/2 | **5/10** | 8,957 ms |
+
+`granite4.1:8b` is the clear default: perfect score across all tiers and 2-3× faster than the alternatives.
+
+### Context optimization that enabled these scores
+
+Earlier runs with the default OpenClaw context showed granite scoring 5/10 and qwen scoring 3/10 — small models were overwhelmed before they could reason about the actual task.
+
+Key changes:
+
+| Change | Saved | Impact |
+|---|---:|---|
+| Replaced full workspace file templates with minimal stubs | ~12,000 chars | Eliminated boilerplate injection |
+| Reduced tool schema via deny list | ~5,400 chars | Removed session, node, media tools |
+| Removed dead remote-node tools (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) | ~2,580 chars | Always fail without a paired node; confused models |
+| Fixed `t2-list`: `exec ls` instead of `dir_list` | — | `dir_list` requires unconfigured remote node ACL |
+
+**Total context: ~11,800 → ~9,250 chars per request for local models**
+
+### Cloud model context
+
+Cloud models added to OpenClaw (Anthropic Claude, OpenAI GPT, etc.) automatically receive the **full unrestricted tool set** via OpenClaw's `tools.byProvider` policy. The `local` provider gets the lean profile; all other providers get browser automation, TTS, image/video/music generation, and all workspace tools. No config changes are needed when adding a cloud API key.

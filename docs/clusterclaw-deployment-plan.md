@@ -187,6 +187,41 @@ Interactive prompts for:
 
 ---
 
+## Model Selection & AI Context
+
+### Which models appear where
+
+| Interface | Models shown | Source |
+|---|---|---|
+| **OpenClaw** agent picker | granite4.1:8b, qwen3.5:4b, nemotron-3-nano:4b | Validated by benchmark — scores 6/10+ |
+| **ThreadWeaver** model selector | All Ollama models | Pulls from Ollama `/api/tags` |
+
+Pull any model with `ollama pull <model>` on clustercrush — it appears in ThreadWeaver immediately. OpenClaw's picker is curated to the three models with proven tool-calling reliability on 8GB hardware.
+
+### Model-aware tool context
+
+OpenClaw uses a two-tier context policy via `tools.byProvider`:
+
+**Local models** (granite, qwen, nemotron — `local` provider) receive a lean schema (~9,250 chars):
+- ✓ Workspace: `read`, `write`, `edit`
+- ✓ Shell: `exec`
+- ✓ Scheduling: `cron`
+- ✓ Web: `web_search`, `web_fetch`
+- ✗ Browser automation, TTS, image/video/music generation (saves ~2,500 chars of schema)
+
+**Cloud models** (Anthropic Claude, OpenAI GPT, etc.) receive the full unrestricted schema automatically when you add an API key in OpenClaw settings. The provider key (`anthropic`, `openai`, etc.) matches the `byProvider` policy and the lean restriction is not applied — no extra configuration needed.
+
+The remote-node file transfer tools (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) are excluded from all models — they require a paired remote node with explicit ACL policy not present in the default Claw setup.
+
+### Adding a cloud model to OpenClaw
+
+1. Open `https://claw.local` → Settings → Providers
+2. Add your API key for Anthropic, OpenAI, or another supported provider
+3. The cloud model appears in the OpenClaw model picker
+4. It automatically receives the full tool set — browser automation, image generation, TTS, and all media tools are unblocked
+
+---
+
 ## Phase Sequence
 
 ```

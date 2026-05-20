@@ -196,27 +196,26 @@ After connecting, install [Tailscale](https://tailscale.com/download) on your de
 
 ## Models
 
-13 models installed by default (~48GB on NVMe). `granite4.1:8b` is the default — pre-warmed into GPU memory on every boot for instant first response. Ollama manages loading/unloading automatically.
+Models run on the Jetson Orin Nano Super (8GB unified memory) via Ollama. `granite4.1:8b` is the default — pre-warmed into GPU memory on every boot for instant first response.
 
-| Model | Size | Type | Notes |
-|-------|-----:|------|-------|
-| **granite4.1:8b** | 5.0 GB | General | **Default** — pre-warmed on boot, best tool calling |
-| llama3.2:3b | 2.0 GB | General | Fast, tool-calling |
-| llama3.1:8b | 4.9 GB | General | Tool-calling, proven reliability |
-| phi3.5:3.8b | 2.2 GB | Reasoning | Tool-calling |
-| qwen2.5:3b | 1.9 GB | General | Tool-calling, structured output |
-| qwen2.5:7b | 4.7 GB | General | Strong reasoning + tool-calling |
-| qwen2.5-coder:7b | 4.7 GB | Code | Best code quality, tool-calling |
-| mistral:7b | 4.1 GB | General | Fast inference, tool-calling |
-| deepseek-r1:7b | 4.7 GB | Reasoning | Chain-of-thought |
-| nemotron-mini:4b | 2.7 GB | General | NVIDIA-optimized for Jetson |
-| gemma3:4b | 3.3 GB | General | Multilingual, no tool calling |
-| llava:7b | 4.7 GB | Vision | Image understanding |
-| moondream:1.8b | 1.7 GB | Vision | Lightweight |
+| Model | Size | OpenClaw | ThreadWeaver | Notes |
+|-------|-----:|:--------:|:------------:|-------|
+| **granite4.1:8b** | 5.0 GB | ✓ default | ✓ | **Best agent scores (10/10)** — pre-warmed on boot |
+| qwen3.5:4b | 2.4 GB | ✓ | ✓ | Strong reasoning, 8/10 agent score |
+| nemotron-3-nano:4b | 2.5 GB | ✓ | ✓ | NVIDIA-optimized for Jetson, 6/10 agent score |
+| qwen3.5:9b | 5.8 GB | — | ✓ | Larger Qwen, ThreadWeaver only |
+| llama3.1:8b | 4.9 GB | — | ✓ | Meta general-purpose |
+| llama3.2:3b | 2.0 GB | — | ✓ | Fast, lightweight |
+| deepseek-r1:7b | 4.7 GB | — | ✓ | Chain-of-thought reasoning |
+| qwen3.5:14b | 9.0 GB | — | ✓ | Large tier — swap-heavy on 8GB |
+| deepseek-r1:14b | 9.0 GB | — | ✓ | Large tier — swap-heavy on 8GB |
+| phi-4:14b | 9.1 GB | — | ✓ | Large tier — swap-heavy on 8GB |
 
-> **Tool calling:** ThreadWeaver MCP tools require a tool-capable model. Gemma3 and vision models fall back to chat-only. Recommended: `granite4.1:8b`.
+> **OpenClaw vs ThreadWeaver:** OpenClaw exposes only the three validated agent models in its picker. ThreadWeaver shows all Ollama models. Add any model with `ollama pull <model>` — it appears in ThreadWeaver immediately.
 
-**GPU pre-warming:** When you change the active model in ThreadWeaver, a background request pre-loads it into GPU memory so the next message is instant.
+> **Tool calling:** All OpenClaw models support tool calling. ThreadWeaver uses MCP tools independently of the model selected.
+
+**GPU pre-warming:** `granite4.1:8b` loads into GPU memory on every boot. When you change models, ThreadWeaver pre-warms the new model in the background so the first message is instant.
 
 ```bash
 # Manage models on clustercrush:
@@ -224,6 +223,30 @@ ollama list
 ollama pull <model>
 ollama rm <model>
 ```
+
+## AI Context
+
+OpenClaw uses **model-aware context** to get the best results from small local models while preserving full capability for cloud models.
+
+### Local models (granite, qwen, nemotron)
+
+Receive a lean, focused context (~9,250 chars) optimized for 4-8B parameter reasoning limits:
+
+| Tool category | Available |
+|---|---|
+| Workspace: `read` / `write` / `edit` | ✓ |
+| Shell: `exec` | ✓ |
+| Scheduling: `cron` | ✓ |
+| Web: `web_search` / `web_fetch` | ✓ |
+| Browser automation, TTS, image/video generation | — (local only) |
+
+The four remote-node file-transfer tools (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) are stripped from the schema — they require a paired remote node that isn't configured, and their presence was confusing smaller models.
+
+### Cloud models (Claude, GPT, Gemini, etc.)
+
+Adding a cloud provider API key in the OpenClaw settings page **automatically unlocks the full tool set** — no config changes needed. Cloud models receive ~6,700 chars of tool schemas covering everything: browser automation, TTS, image/video/music generation, cron scheduling, and all workspace tools.
+
+This is handled by OpenClaw's native `tools.byProvider` policy: the `local` provider gets the lean profile; all other providers (anthropic, openai, gemini, etc.) get the unrestricted profile.
 
 ## Management
 

@@ -69,9 +69,15 @@ cat > "$CONFIG" <<EOF
             "sessions_list", "session_status", "sessions_history",
             "sessions_spawn", "sessions_yield", "subagents",
             "nodes", "device_pair", "canvas",
-            "cron", "browser", "message", "process",
-            "gateway", "tts", "memory_search", "memory_get", "sessions_send"
-          ]
+            "message", "process", "gateway",
+            "memory_search", "memory_get", "sessions_send",
+            "file_fetch", "dir_list", "dir_fetch", "file_write"
+          ],
+          "byProvider": {
+            "local": {
+              "deny": ["browser", "tts", "image_generate", "video_generate", "music_generate"]
+            }
+          }
         }
       },
       {
@@ -91,9 +97,15 @@ cat > "$CONFIG" <<EOF
             "sessions_list", "session_status", "sessions_history",
             "sessions_spawn", "sessions_yield", "subagents",
             "nodes", "device_pair", "canvas",
-            "cron", "browser", "message", "process",
-            "gateway", "tts", "memory_search", "memory_get", "sessions_send"
-          ]
+            "message", "process", "gateway",
+            "memory_search", "memory_get", "sessions_send",
+            "file_fetch", "dir_list", "dir_fetch", "file_write"
+          ],
+          "byProvider": {
+            "local": {
+              "deny": ["browser", "tts", "image_generate", "video_generate", "music_generate"]
+            }
+          }
         }
       }
     ]
@@ -136,18 +148,26 @@ else
               "sessions_list","session_status","sessions_history",
               "sessions_spawn","sessions_yield","subagents",
               "nodes","device_pair","canvas",
-              "cron","browser","message","process",
-              "gateway","tts","memory_search","memory_get","sessions_send"
-            ]
+              "message","process","gateway",
+              "memory_search","memory_get","sessions_send",
+              "file_fetch","dir_list","dir_fetch","file_write"
+            ] |
+            .tools.byProvider = {
+              "local": {"deny": ["browser","tts","image_generate","video_generate","music_generate"]}
+            }
           elif .id == "chat" then
             .systemPromptOverride = $cp |
             .tools.deny = [
               "sessions_list","session_status","sessions_history",
               "sessions_spawn","sessions_yield","subagents",
               "nodes","device_pair","canvas",
-              "cron","browser","message","process",
-              "gateway","tts","memory_search","memory_get","sessions_send"
-            ]
+              "message","process","gateway",
+              "memory_search","memory_get","sessions_send",
+              "file_fetch","dir_list","dir_fetch","file_write"
+            ] |
+            .tools.byProvider = {
+              "local": {"deny": ["browser","tts","image_generate","video_generate","music_generate"]}
+            }
           else . end
         )) |
         .models.providers.local.baseUrl = $base_url |
@@ -165,8 +185,25 @@ fi
 # Deploy workspace context files on every start so image updates are reflected.
 #
 # Context budget rationale — smaller models (4-8B) have ~8k effective context.
-# We aggressively trim injected files and deny heavy tool schemas to keep the
-# per-request context under ~8k chars, leaving headroom for conversation history.
+# We trim injected files and dead tool schemas to keep per-request context
+# under ~9k chars, leaving headroom for conversation history.
+#
+# Tool policy layers:
+#   Global deny (all models): session mgmt, node/device pairing, process/gateway
+#     admin, memory DB (not configured), and remote-node file-transfer tools
+#     (file_fetch/dir_list/dir_fetch/file_write — always fail without a paired node).
+#   cron is ALLOWED for all models — use read/write/exec/web_search for local work.
+#   byProvider.local (small local models only): additionally deny browser automation,
+#     TTS, image/video/music generation — these require APIs not available locally.
+#   Cloud models (anthropic, openai, etc.) added to OpenClaw get the full
+#     unrestricted tool set automatically — browser, TTS, cron, image generation.
+#
+# Approximate context per request:
+#   System prompt:     ~850 chars
+#   Workspace files:  ~1,900 chars  (AGENTS.md + SOUL.md + stubs)
+#   Skills:           ~2,300 chars  (7 built-in skill blocks)
+#   Tool schemas:     ~4,200 chars  (local models; ~6,700 for cloud)
+#   Total (local):    ~9,250 chars  ← was ~11,800 before optimization
 #
 # AGENTS.md: custom lean version (≈700 chars vs 7.7k default boilerplate)
 # SOUL.md:   PicoCluster identity (≈800 chars, kept as-is)

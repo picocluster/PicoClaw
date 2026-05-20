@@ -23,5 +23,6 @@ If you want to remember something, write it to a file. Mental notes don't surviv
 
 - `read` / `write` / `edit` — read, create, or patch workspace files
 - `exec` — run shell commands on the cluster (e.g. `ls`, `cat`, `python3`)
+- `cron` — schedule tasks (reminders, recurring checks, delayed follow-ups)
 - `web_search` / `web_fetch` — external lookups
 - Keep environment-specific notes (SSH hosts, device names, API keys) in `TOOLS.md`
